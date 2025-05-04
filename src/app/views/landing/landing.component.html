@@ -1,0 +1,378 @@
+<!-- Main Container -->
+<div class="landing-page">
+  <!-- Navigation -->
+    <nav class="landing-nav">
+      <div class="nav-brand">
+      <img src="assets/images/logo.png" alt="Logo" class="brand-logo">
+      <h1>JK Associate</h1>
+      </div>
+      
+      <button class="mobile-menu-btn" (click)="toggleMobileMenu()" 
+              [attr.aria-expanded]="isMobileMenuOpen" 
+              aria-label="Toggle navigation menu">
+        <span class="menu-icon" [class.active]="isMobileMenuOpen"></span>
+      </button>
+
+    <div class="nav-menu" [class.active]="isMobileMenuOpen">
+      <!-- <a href="#solutions" class="nav-link" (click)="closeMenu()">Solutions</a> -->
+      <a href="#features" class="nav-link" (click)="closeMenu()">Features</a>
+      <a href="#testimonials" class="nav-link" (click)="closeMenu()">Testimonials</a>
+      <!-- <a href="#pricing" class="nav-link" (click)="closeMenu()">Pricing</a> -->
+      <div class="nav-buttons">
+        <a routerLink="/login" class="nav-button login" (click)="closeMenu()">Login</a>
+        <!-- <a routerLink="/register" class="nav-button register" (click)="closeMenu()">Get Started</a> -->
+      </div>
+      </div>
+    </nav>
+    
+  <!-- Slide Banner -->
+  <section class="banner-slider">
+    <div class="slides-container">
+      <div class="slide" [class.active]="currentSlide === 0">
+        <div class="slide-content">
+          <h1>Streamline Your Business Operations</h1>
+          <p>All-in-one sales management solution designed for growing enterprises</p>
+          <a routerLink="/register" class="slide-cta">Start Free Trial</a>
+        </div>
+        <div class="slide-image">
+          <img src="assets/images/banner-1.jpg" alt="Business Operations">
+        </div>
+      </div>
+      
+      <div class="slide" [class.active]="currentSlide === 1">
+        <div class="slide-content">
+          <h1>Scale Your Business With Confidence</h1>
+          <p>Powerful tools that grow with your enterprise needs</p>
+          <a routerLink="/register" class="slide-cta">Start Free Trial</a>
+        </div>
+        <div class="slide-image">
+          <img src="assets/images/banner-2.jpg" alt="Business Scaling">
+        </div>
+      </div>
+      
+      <div class="slide" [class.active]="currentSlide === 2">
+        <div class="slide-content">
+          <h1>Insights That Drive Growth</h1>
+          <p>Data-driven decisions for your enterprise success</p>
+          <a routerLink="/register" class="slide-cta">Start Free Trial</a>
+        </div>
+        <div class="slide-image">
+          <img src="assets/images/banner-3.jpg" alt="Business Insights">
+        </div>
+      </div>
+    </div>
+
+    <div class="slider-controls">
+      <button class="slider-arrow prev" (click)="prevSlide()" aria-label="Previous slide">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <div class="slider-dots">
+        <button class="dot" [class.active]="currentSlide === 0" (click)="goToSlide(0)" aria-label="Go to slide 1"></button>
+        <button class="dot" [class.active]="currentSlide === 1" (click)="goToSlide(1)" aria-label="Go to slide 2"></button>
+        <button class="dot" [class.active]="currentSlide === 2" (click)="goToSlide(2)" aria-label="Go to slide 3"></button>
+      </div>
+      <button class="slider-arrow next" (click)="nextSlide()" aria-label="Next slide">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- Enterprise Solutions Section -->
+  <!-- <section class="solutions" id="solutions">
+    <div class="section-header">
+      <h2>Enterprise Solutions</h2>
+      <p>Tailored for businesses of all sizes</p>
+    </div>
+    
+    <div class="solutions-grid">
+      <div class="solution-card">
+        <div class="solution-icon">
+          <i class="fas fa-store"></i>
+        </div>
+        <h3>Small Business</h3>
+        <p>Affordable solutions to streamline operations and boost growth</p>
+        <ul class="solution-features">
+          <li><i class="fas fa-check"></i> Easy setup and onboarding</li>
+          <li><i class="fas fa-check"></i> Essential sales tracking</li>
+          <li><i class="fas fa-check"></i> Basic reporting</li>
+        </ul>
+        <a href="#pricing" class="solution-link">Learn More</a>
+      </div>
+
+      <div class="solution-card featured">
+        <div class="solution-badge">Most Popular</div>
+        <div class="solution-icon">
+          <i class="fas fa-building"></i>
+        </div>
+        <h3>Medium Enterprise</h3>
+        <p>Comprehensive tools to scale your business operations</p>
+        <ul class="solution-features">
+          <li><i class="fas fa-check"></i> Advanced analytics</li>
+          <li><i class="fas fa-check"></i> Multi-user access</li>
+          <li><i class="fas fa-check"></i> Integration capabilities</li>
+        </ul>
+        <a href="#pricing" class="solution-link">Learn More</a>
+      </div>
+
+      <div class="solution-card">
+        <div class="solution-icon">
+          <i class="fas fa-city"></i>
+        </div>
+        <h3>Large Enterprise</h3>
+        <p>Custom solutions for complex business requirements</p>
+        <ul class="solution-features">
+          <li><i class="fas fa-check"></i> Custom workflows</li>
+          <li><i class="fas fa-check"></i> Enterprise API access</li>
+          <li><i class="fas fa-check"></i> Dedicated support</li>
+        </ul>
+        <a href="#pricing" class="solution-link">Learn More</a>
+      </div>
+    </div>
+  </section> -->
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <div class="section-header">
+      <h2>Enterprise-Grade Features</h2>
+      <p>Powerful tools designed for business growth</p>
+    </div>
+    
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>Advanced Analytics</h3>
+        <p>Gain insights with customizable dashboards and reports</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <h3>Customer Management</h3>
+        <p>Build stronger relationships with integrated CRM tools</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-box"></i>
+        </div>
+        <h3>Inventory Control</h3>
+        <p>Streamline stock management with real-time tracking</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-mobile-alt"></i>
+        </div>
+        <h3>Mobile Access</h3>
+        <p>Manage your business from anywhere, on any device</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-lock"></i>
+        </div>
+        <h3>Enterprise Security</h3>
+        <p>Keep your business data safe with advanced security features</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-plug"></i>
+        </div>
+        <h3>API Integration</h3>
+        <p>Connect with your existing business tools seamlessly</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="testimonials" id="testimonials">
+    <div class="section-header">
+      <h2>Trusted by Businesses</h2>
+      <p>See what our customers have to say</p>
+    </div>
+    
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="testimonial-content">
+          <i class="fas fa-quote-left"></i>
+          <p>"SalesPro has transformed how we manage our sales process. The analytics tools have helped us identify new opportunities and grow our business by 30% in just six months."</p>
+        </div>
+        <div class="testimonial-author">
+          <img src="assets/images/testimonial-1.jpg" alt="Sarah Johnson">
+          <div class="author-info">
+            <h4>Sarah Johnson</h4>
+            <p>CEO, TechGrowth Solutions</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="testimonial-card">
+        <div class="testimonial-content">
+          <i class="fas fa-quote-left"></i>
+          <p>"As a medium-sized manufacturing company, we needed a solution that could scale with us. SalesPro provided exactly what we needed, with excellent support along the way."</p>
+        </div>
+        <div class="testimonial-author">
+          <img src="assets/images/testimonial-2.jpg" alt="Michael Chen">
+          <div class="author-info">
+            <h4>Michael Chen</h4>
+            <p>Operations Director, Precision Manufacturing</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="testimonial-card">
+        <div class="testimonial-content">
+          <i class="fas fa-quote-left"></i>
+          <p>"The inventory management features have eliminated stockouts and reduced our carrying costs. SalesPro paid for itself within the first quarter of implementation."</p>
+        </div>
+        <div class="testimonial-author">
+          <img src="assets/images/testimonial-3.jpg" alt="Amanda Rodriguez">
+          <div class="author-info">
+            <h4>Amanda Rodriguez</h4>
+            <p>Supply Chain Manager, Global Retail</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <!-- <section class="pricing" id="pricing">
+    <div class="section-header">
+      <h2>Flexible Pricing</h2>
+      <p>Choose the plan that fits your business needs</p>
+    </div>
+    
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-header">
+          <h3>Starter</h3>
+          <div class="price">
+            <span class="currency">$</span>
+            <span class="amount">29</span>
+            <span class="period">/month</span>
+          </div>
+          <p>Perfect for small businesses</p>
+        </div>
+        <ul class="pricing-features">
+          <li><i class="fas fa-check"></i> Up to 5 users</li>
+          <li><i class="fas fa-check"></i> Basic reporting</li>
+          <li><i class="fas fa-check"></i> Customer management</li>
+          <li><i class="fas fa-check"></i> Email support</li>
+        </ul>
+        <a routerLink="/register" class="pricing-cta">Get Started</a>
+      </div>
+      
+      <div class="pricing-card popular">
+        <div class="popular-badge">Most Popular</div>
+        <div class="pricing-header">
+          <h3>Business</h3>
+          <div class="price">
+            <span class="currency">$</span>
+            <span class="amount">79</span>
+            <span class="period">/month</span>
+          </div>
+          <p>Ideal for growing enterprises</p>
+        </div>
+        <ul class="pricing-features">
+          <li><i class="fas fa-check"></i> Up to 20 users</li>
+          <li><i class="fas fa-check"></i> Advanced analytics</li>
+          <li><i class="fas fa-check"></i> API access</li>
+          <li><i class="fas fa-check"></i> Priority support</li>
+        </ul>
+        <a routerLink="/register" class="pricing-cta">Get Started</a>
+      </div>
+      
+      <div class="pricing-card">
+        <div class="pricing-header">
+          <h3>Enterprise</h3>
+          <div class="price">
+            <span class="custom-price">Custom</span>
+          </div>
+          <p>For large organizations</p>
+        </div>
+        <ul class="pricing-features">
+          <li><i class="fas fa-check"></i> Unlimited users</li>
+          <li><i class="fas fa-check"></i> Custom reporting</li>
+          <li><i class="fas fa-check"></i> Dedicated account manager</li>
+          <li><i class="fas fa-check"></i> 24/7 premium support</li>
+        </ul>
+        <a routerLink="/contact" class="pricing-cta outline">Contact Sales</a>
+      </div>
+    </div>
+  </section> -->
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>Ready to Transform Your Business?</h2>
+      <p>Join thousands of SMEs already using our platform to grow their business</p>
+      <div class="cta-buttons">
+        <a routerLink="/register" class="cta-button primary">Start Free Trial</a>
+        <a routerLink="/demo" class="cta-button outline">Request Demo</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="footer-content">
+      <!-- Brand Section -->
+      <div class="footer-brand">
+        <h3>SalesPro</h3>
+        <p>Empowering businesses with innovative solutions for growth and success.</p>
+        <div class="newsletter-form">
+          <input type="email" placeholder="Enter your email">
+          <button>Subscribe</button>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="footer-section">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>About Us</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Features</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Pricing</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Contact</a></li>
+        </ul>
+      </div>
+
+      <!-- Resources -->
+      <div class="footer-section">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Documentation</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Help Center</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Blog</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Webinars</a></li>
+        </ul>
+      </div>
+
+      <!-- Legal -->
+      <div class="footer-section">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Privacy Policy</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Terms of Service</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Security</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Cookies Policy</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+      <p>&copy; 2024 SalesPro. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+  </footer>
+  </div>

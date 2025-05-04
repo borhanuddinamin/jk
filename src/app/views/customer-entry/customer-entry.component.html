@@ -1,0 +1,255 @@
+<div class="customer-entry">
+  <div class="header">
+    <div class="header-content">
+      <h2>Customer Management</h2>
+      <p class="subtitle">Add and manage customer information</p>
+    </div>
+  </div>
+
+  <button class="open-form-btn" (click)="openForm()">Add New Customer</button>
+
+  <div class="modal" *ngIf="showForm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Add Customer</h2>
+        <button class="close-btn" (click)="closeForm()">&times;</button>
+      </div>
+      <form [formGroup]="customerForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="name">Name:</label>
+          <div class="input-with-icon">
+            <i class="fas fa-user"></i>
+            <input type="text" id="name" formControlName="name" placeholder="Enter name">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone:</label>
+          <div class="input-with-icon">
+            <i class="fas fa-phone"></i>
+            <input type="tel" id="phone" formControlName="phone" placeholder="Enter phone number">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="address">Address:</label>
+          <div class="input-with-icon">
+            <i class="fas fa-map-marker-alt"></i>
+            <textarea id="address" formControlName="address" placeholder="Enter address"></textarea>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="nidNumber">NID Number:</label>
+          <div class="input-with-icon">
+            <i class="fas fa-id-card"></i>
+            <input type="text" id="nidNumber" formControlName="nidNumber" placeholder="Enter NID number">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="fileInput">Attachments:</label>
+          <input type="file" id="fileInput" (change)="onFileSelect($event)" multiple>
+          <div class="file-list">
+            <div *ngFor="let file of selectedFiles; let i = index">
+              <span>{{ file.name }}</span>
+              <button type="button" (click)="removeFile(i)">Remove</button>
+            </div>
+          </div>
+        </div>
+        <button type="submit" [disabled]="!customerForm.valid">Submit</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Sales Modal -->
+<div class="modal-overlay" *ngIf="showSalesModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="header-content">
+        <h3>Create Sale for {{customerForm.get('name')?.value}}</h3>
+        <p class="subtitle">Add products and payment details</p>
+      </div>
+      <button class="close-btn" (click)="closeSalesModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="salesForm" (ngSubmit)="onSalesSubmit()">
+        <div class="form-section">
+          <div class="section-header">
+            <h4 class="section-title">Sales Information</h4>
+            <div class="section-badge">Product Details</div>
+          </div>
+
+          <div class="form-grid">
+            <!-- Product Selection -->
+            <div class="form-group product-selection full-width">
+              <label>Select Products <span class="required">*</span></label>
+              <ng-select 
+                [items]="products"
+                [multiple]="true"
+                [closeOnSelect]="false"
+                [searchable]="true"
+                [clearable]="true"
+                bindLabel="name"
+                placeholder="Search and select products"
+                formControlName="products"
+                (change)="onProductSelect($event)"
+                [loading]="false">
+                <ng-template ng-header-tmp>
+                  <div class="search-header">
+                    <i class="fas fa-search"></i>
+                    <small>Type to search products...</small>
+                  </div>
+                </ng-template>
+                <ng-template ng-option-tmp let-item="item">
+                  <div class="product-option">
+                    <div class="product-info">
+                      <i class="fas fa-box-open"></i>
+                      <div class="product-details">
+                        <span class="product-name">{{item.name}}</span>
+                        <small class="product-id">#{{item.id}}</small>
+                      </div>
+                    </div>
+                    <span class="product-price">{{item.price | currency:'TK '}}</span>
+                  </div>
+                </ng-template>
+                <ng-template ng-multi-label-tmp let-items="items" let-clear="clear">
+                  <div class="selected-summary">
+                    <div class="summary-info">
+                      <span class="product-count">{{items.length}} products</span>
+                      <span class="total-amount">Total: {{totalPrice | currency:'TK '}}</span>
+                    </div>
+                    <button class="clear-all" (click)="clear($event)" *ngIf="items.length">
+                      <i class="fas fa-times"></i>
+                      Clear all
+                    </button>
+                  </div>
+                </ng-template>
+              </ng-select>
+            </div>
+
+            <!-- Sales Price -->
+            <div class="form-group">
+              <label>Sales Price</label>
+              <div class="input-with-icon">
+                <span class="currency-symbol">৳</span>
+                <input type="number" formControlName="salesPrice" readonly>
+              </div>
+            </div>
+
+            <!-- Associate Selection -->
+            <div class="form-group">
+              <label>Select Associate <span class="required">*</span></label>
+              <ng-select 
+                formControlName="associate" 
+                [items]="associates" 
+                bindLabel="name" 
+                bindValue="id" 
+                [clearable]="true"
+                [searchable]="true"
+                placeholder="Search for an associate">
+                <ng-template ng-option-tmp let-item="item">
+                  <div class="associate-option">
+                    <i class="fas fa-user"></i>
+                    <span>{{item.name}}</span>
+                  </div>
+                </ng-template>
+              </ng-select>
+            </div>
+
+            <!-- Sales Type -->
+            <div class="form-group">
+              <label>Sales Type <span class="required">*</span></label>
+              <div class="sales-type-selector">
+                <div class="type-option" *ngFor="let type of salesTypes">
+                  <input type="radio" [value]="type" formControlName="salesType" [id]="'type_' + type">
+                  <label [for]="'type_' + type" class="type-label">
+                    <i class="fas" [ngClass]="type === 'Cash' ? 'fa-money-bill' : 'fa-clock'"></i>
+                    {{type}}
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Down Payment -->
+            <div class="form-group">
+              <label>Down Payment (TK) <span class="required">*</span></label>
+              <div class="input-with-icon">
+                <span class="currency-symbol">৳</span>
+                <input type="number" formControlName="downPayment" min="0">
+              </div>
+            </div>
+
+            <!-- Down Payment Commission -->
+            <div class="form-group">
+              <label>Down Payment Commission (TK) <span class="required">*</span></label>
+              <div class="input-with-icon">
+                <span class="currency-symbol">৳</span>
+                <input type="number" formControlName="downPaymentCommission" min="0">
+              </div>
+            </div>
+
+            <!-- Discount -->
+            <div class="form-group">
+              <label>Discount (TK) <span class="required">*</span></label>
+              <div class="input-with-icon">
+                <span class="currency-symbol">৳</span>
+                <input type="number" formControlName="discount" min="0">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Installment Section -->
+        <div class="form-section" *ngIf="salesForm.get('salesType')?.value === 'Installment'">
+          <div class="section-header">
+            <h4 class="section-title">Installment Details</h4>
+            <div class="section-badge">Payment Plan</div>
+          </div>
+          <div class="form-grid">
+            <!-- Installment Size -->
+            <div class="form-group">
+              <label>Installment Size <span class="required">*</span></label>
+              <div class="input-with-icon">
+                <i class="fas fa-layer-group"></i>
+                <input type="number" formControlName="installmentSize" min="1">
+              </div>
+            </div>
+
+            <!-- Installment Date -->
+            <div class="form-group">
+              <label>Installment Date (Month) <span class="required">*</span></label>
+              <div class="input-with-icon">
+                <i class="fas fa-calendar"></i>
+                <input type="date" formControlName="installmentDate">
+              </div>
+            </div>
+
+            <!-- Installment Amount -->
+            <div class="form-group">
+              <label>Installment Amount (TK)</label>
+              <div class="input-with-icon">
+                <span class="currency-symbol">৳</span>
+                <input type="number" formControlName="installmentAmount" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="cancel-btn" (click)="closeSalesModal()">
+            <i class="fas fa-times"></i>
+            <span>Cancel</span>
+          </button>
+          <button type="submit" class="submit-btn" [disabled]="!salesForm.valid">
+            <span class="btn-content">
+              <i class="fas fa-shopping-cart"></i>
+              <span class="btn-text">Create Sale</span>
+            </span>
+            <span class="btn-shine"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

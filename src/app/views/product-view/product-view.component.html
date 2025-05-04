@@ -1,0 +1,244 @@
+<div class="product-view-container">
+  <!-- Cart Icon with Badge -->
+  <div class="cart-icon-container">
+    <button class="cart-icon" (click)="toggleCart()">
+      <i class="fas fa-shopping-cart"></i>
+      <span class="cart-badge" *ngIf="getCartItemCount() > 0">{{ getCartItemCount() }}</span>
+    </button>
+  </div>
+
+  <!-- Cart Dropdown -->
+  <div class="cart-dropdown" *ngIf="showCart">
+    <div class="cart-header">
+      <h3>Your Cart</h3>
+      <button class="close-cart" (click)="toggleCart()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="cart-items" *ngIf="cart.length > 0">
+      <div class="cart-item" *ngFor="let item of cart; let i = index">
+        <div class="item-image">
+          <img [src]="getImageUrl(item.product)" [alt]="item.product.nameEnglish">
+        </div>
+        <div class="item-details">
+          <h4>{{ item.product.nameEnglish }}</h4>
+          <div class="item-price">৳{{ item.product.salePrice }}</div>
+        </div>
+        <div class="item-quantity">
+          <button (click)="updateCartItemQuantity(i, item.quantity - 1)" [disabled]="item.quantity <= 1">-</button>
+          <span>{{ item.quantity }}</span>
+          <button (click)="updateCartItemQuantity(i, item.quantity + 1)" [disabled]="item.quantity >= item.product.availableQuantity">+</button>
+        </div>
+        <div class="item-total">৳{{ item.product.salePrice * item.quantity }}</div>
+        <button class="remove-item" (click)="removeFromCart(i)">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="empty-cart" *ngIf="cart.length === 0">
+      <i class="fas fa-shopping-cart"></i>
+      <p>Your cart is empty</p>
+    </div>
+    
+    <div class="cart-footer" *ngIf="cart.length > 0">
+      <div class="cart-total">
+        <span>Total:</span>
+        <span class="total-amount">৳{{ getCartTotal() }}</span>
+      </div>
+      <div class="cart-actions">
+        <button class="clear-cart" (click)="clearCart()">Clear Cart</button>
+        <button class="checkout-btn" (click)="proceedToOrder()">
+          <i class="fas fa-shopping-bag"></i>
+          Proceed to Order
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Details Section (shown only when a product is selected) -->
+  <div class="product-details-container" *ngIf="showProductDetails && selectedProduct">
+    <div class="breadcrumb">
+      <a href="#">Home</a> &gt; 
+      <a href="#">{{ selectedProduct.category.name }}</a> &gt; 
+      <span>{{ selectedProduct.nameEnglish }}</span>
+    </div>
+
+    <button class="back-button" (click)="closeProductDetails()">
+      <i class="fas fa-arrow-left"></i> Back to Products
+    </button>
+
+    <div class="product-details">
+      <!-- Product Image Section -->
+      <div class="product-image-section">
+        <div class="main-image">
+          <img [src]="getImageUrl(selectedProduct)" [alt]="selectedProduct.nameEnglish">
+        </div>
+      </div>
+
+      <!-- Product Info Section -->
+      <div class="product-info-section">
+        <h1 class="product-title">{{ selectedProduct.nameEnglish }}</h1>
+        <h2 class="product-title-bangla">{{ selectedProduct.nameBangla }}</h2>
+        
+        <div class="product-code" *ngIf="selectedProduct.productCode">Product Code: <span>{{ selectedProduct.productCode }}</span></div>
+        
+        <div class="product-price">
+          <div class="selling-price">৳{{ selectedProduct.salePrice }}</div>
+          <div class="installment-price">Installment Price: <span>৳{{ selectedProduct.installmentPrice }}</span></div>
+        </div>
+        
+        <div class="product-stock" [ngClass]="getStockStatusClass(selectedProduct)">
+          <i class="fas" [ngClass]="{'fa-check-circle': selectedProduct.availableQuantity > 0, 'fa-times-circle': selectedProduct.availableQuantity <= 0}"></i>
+          {{ getStockStatus(selectedProduct) }} ({{ selectedProduct.availableQuantity }} available)
+        </div>
+        
+        <div class="product-description">
+          <h3>Description</h3>
+          <p>{{ selectedProduct.description }}</p>
+        </div>
+        
+        <div class="product-meta">
+          <div class="meta-item">
+            <span class="label">Category:</span>
+            <span class="value">{{ selectedProduct.category.name }}</span>
+          </div>
+        </div>
+        
+        <div class="add-to-cart-section">
+          <div class="quantity-selector">
+            <button (click)="decrementQuantity()" [disabled]="quantity <= 1">-</button>
+            <input type="number" [(ngModel)]="quantity" min="1" [max]="selectedProduct.availableQuantity">
+            <button (click)="incrementQuantity()" [disabled]="quantity >= selectedProduct.availableQuantity">+</button>
+          </div>
+          
+          <button class="add-to-cart-btn" (click)="addToCart()" [disabled]="selectedProduct.availableQuantity <= 0">
+            <i class="fas fa-shopping-cart"></i>
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Related Products Section -->
+    <div class="related-products-section" *ngIf="getRelatedProducts().length > 0">
+      <h2 class="section-title">Related Products</h2>
+      <div class="products-grid">
+        <div class="product-card" *ngFor="let product of getRelatedProducts()">
+          <div class="product-image">
+            <img [src]="getImageUrl(product)" [alt]="product.nameEnglish">
+          </div>
+          <div class="product-info">
+            <h3 class="product-name">{{ product.nameEnglish }}</h3>
+            <div class="product-code" *ngIf="product.productCode">Code: {{ product.productCode }}</div>
+            <div class="product-price">৳{{ product.salePrice }}</div>
+            <div class="product-stock" [ngClass]="getStockStatusClass(product)">
+              {{ getStockStatus(product) }}
+            </div>
+            <button class="view-details-btn" (click)="viewProductDetails(product)">View Details</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Product Grid (shown when no product is selected) -->
+  <div class="product-grid-container" *ngIf="!showProductDetails">
+    <h1 class="page-title">Our Products</h1>
+    
+    <!-- Search and Filter Container -->
+    <div class="filter-container">
+      <!-- Search Bar -->
+      <div class="search-container">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          placeholder="Search products..." 
+          (keyup.enter)="searchProducts()"
+        >
+        <button class="search-btn" (click)="searchProducts()">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+      
+      <!-- Category Filter -->
+      <div class="category-filter">
+        <select [(ngModel)]="selectedCategoryId" (change)="onCategoryChange()">
+          <option [ngValue]="null">All Categories</option>
+          <option *ngFor="let category of categories" [ngValue]="category.id">{{ category.name }}</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- Loading Indicator -->
+    <div class="loading-indicator" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Loading products...</p>
+    </div>
+    
+    <!-- Products Grid -->
+    <div class="products-grid" *ngIf="!isLoading && products.length > 0">
+      <div class="product-card" *ngFor="let product of products">
+        <div class="product-image">
+          <img [src]="getImageUrl(product)" [alt]="product.nameEnglish">
+        </div>
+        <div class="product-info">
+          <h3 class="product-name">{{ product.nameEnglish }}</h3>
+          <div class="product-code" *ngIf="product.productCode">Code: {{ product.productCode }}</div>
+          <div class="product-price">৳{{ product.salePrice }}</div>
+          <div class="product-stock" [ngClass]="getStockStatusClass(product)">
+            {{ getStockStatus(product) }}
+          </div>
+          <button class="view-details-btn" (click)="viewProductDetails(product)">View Details</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- See More Button -->
+    <div class="see-more-container" *ngIf="!isLoading && products.length > displayedProducts.length && !showAllProducts">
+      <button class="see-more-btn" (click)="toggleShowMore()">
+        <span>See More</span>
+        <i class="fas fa-chevron-down"></i>
+      </button>
+    </div>
+    
+    <!-- See Less Button -->
+    <div class="see-more-container" *ngIf="!isLoading && showAllProducts && products.length > (initialRowsToShow * productsPerRow)">
+      <button class="see-more-btn" (click)="toggleShowMore()">
+        <span>See Less</span>
+        <i class="fas fa-chevron-up"></i>
+      </button>
+    </div>
+    
+    <!-- No Products Message -->
+    <div class="no-products" *ngIf="!isLoading && products.length === 0">
+      <i class="fas fa-box-open"></i>
+      <p>No products found</p>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button class="page-btn prev" [disabled]="!hasPreviousPage" (click)="previousPage()">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      
+      <div class="page-numbers">
+        <button 
+          *ngFor="let page of getPaginationArray()" 
+          class="page-number" 
+          [class.active]="page === pageNumber"
+          [class.ellipsis]="page === -1"
+          [disabled]="page === -1"
+          (click)="page !== -1 && goToPage(page)"
+        >
+          {{ page === -1 ? '...' : page }}
+        </button>
+      </div>
+      
+      <button class="page-btn next" [disabled]="!hasNextPage" (click)="nextPage()">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</div>

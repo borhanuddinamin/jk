@@ -1,0 +1,142 @@
+@use 'sass:color';
+
+:host {
+  display: block;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+}
+
+.bg-light {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+}
+
+.min-vh-100 {
+  min-height: 100vh;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem;
+}
+
+.px-4 {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.px-0 {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.p-4 {
+  padding: 1.5rem;
+}
+
+.card {
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.text-body-secondary {
+  color: #6c757d;
+}
+
+.form-control {
+  border-radius: 0.5rem;
+}
+
+.btn-primary {
+  background-color: color.adjust(#2563eb, $lightness: -10%);
+  border-color: color.adjust(#2563eb, $lightness: -10%);
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: color.adjust(#2563eb, $lightness: -20%);
+    transform: translateY(-1px);
+  }
+}
+
+.btn-link {
+  color: color.adjust(#2563eb, $lightness: -10%);
+  text-decoration: none;
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: color.adjust(#2563eb, $lightness: -20%);
+    text-decoration: underline;
+  }
+}
+
+.input-group {
+  .input-group-text {
+    background-color: #f8f9fa;
+    border-right: none;
+  }
+
+  .form-control {
+    border-left: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    margin: 1rem;
+  }
+}
+
+.modal-header {
+  border-bottom: none;
+  padding: 1.5rem 1.5rem 0;
+  
+  .modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+}
+
+.modal-body {
+  padding: 1.5rem;
+  text-align: center;
+  
+  p {
+    margin: 0;
+    font-size: 1rem;
+    color: #6c757d;
+  }
+}
+
+.modal-footer {
+  border-top: none;
+  padding: 0 1.5rem 1.5rem;
+  justify-content: center;
+  
+  .btn {
+    min-width: 100px;
+    margin: 0 0.5rem;
+  }
+}

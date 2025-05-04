@@ -1,0 +1,262 @@
+<div class="associate-management">
+  <div class="header">
+    <h2>Associate Management</h2>
+    <button class="btn-add" (click)="addAssociate()">
+      Add New Associate
+    </button>
+  </div>
+
+  <!-- Associate Form -->
+  <div class="form-container" *ngIf="showForm">
+    <form [formGroup]="associateForm" (ngSubmit)="onSubmit()">
+      <div class="form-grid">
+        <!-- Personal Information Section -->
+        <div class="form-section">
+          <h3 class="section-title">Personal Information</h3>
+          <div class="section-grid">
+            <div class="form-group">
+              <label>Name (English) <span class="required">*</span></label>
+              <input type="text" formControlName="nameEnglish" placeholder="Enter name in English">
+            </div>
+
+            <div class="form-group bangla-input">
+              <label>Name (Bengali) <span class="required">*</span></label>
+              <input type="text" formControlName="nameBengali" placeholder="বাংলায় নাম লিখুন">
+            </div>
+
+            <div class="form-group">
+              <label>Phone Number 1 <span class="required">*</span></label>
+              <input type="tel" formControlName="phone1" placeholder="01XXXXXXXXX">
+            </div>
+
+            <div class="form-group">
+              <label>Phone Number 2</label>
+              <input type="tel" formControlName="phone2" placeholder="01XXXXXXXXX">
+            </div>
+
+            <div class="form-group">
+              <label>NID Number <span class="required">*</span></label>
+              <input type="text" formControlName="nidNumber" placeholder="Enter NID number">
+            </div>
+
+            <div class="form-group full-width">
+              <label>Address <span class="required">*</span></label>
+              <textarea formControlName="address" placeholder="Enter full address" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Guarantor Information Section -->
+        <div class="form-section">
+          <h3 class="section-title">Guarantor Information</h3>
+          <div class="section-grid">
+            <div class="form-group">
+              <label>Guarantor Name <span class="required">*</span></label>
+              <input type="text" formControlName="guarantorName" placeholder="Enter guarantor's name">
+            </div>
+
+            <div class="form-group">
+              <label>Relation to Guarantor <span class="required">*</span></label>
+              <input type="text" formControlName="guarantorRelation" placeholder="Enter relation">
+            </div>
+
+            <div class="form-group">
+              <label>Guarantor Phone <span class="required">*</span></label>
+              <input type="tel" formControlName="guarantorPhone" placeholder="01XXXXXXXXX">
+            </div>
+
+            <div class="form-group guarantor-nid">
+              <label>Guarantor NID Number <span class="required">*</span></label>
+              <input type="text" formControlName="guarantorNidNumber" placeholder="Enter guarantor's NID number">
+            </div>
+
+            <div class="form-group guarantor-address">
+              <label>Guarantor Address <span class="required">*</span></label>
+              <textarea formControlName="guarantorAddress" placeholder="Enter guarantor's full address" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attachments Section -->
+        <div class="form-section">
+          <h3 class="section-title">Attachments</h3>
+          <div class="attachment-container">
+            <div class="file-upload">
+              <input
+                type="file"
+                multiple
+                #fileInput
+                (change)="handleFileUpload($event)"
+                accept=".pdf,.jpg,.jpeg,.png"
+                style="display: none"
+              >
+              <button type="button" class="upload-btn" (click)="fileInput.click()">
+                <i class="fas fa-upload"></i> Upload Files
+              </button>
+            </div>
+
+            <div class="file-list" *ngIf="selectedFiles.length > 0">
+              <div class="file-item" *ngFor="let file of selectedFiles; let i = index">
+                <span class="file-name">{{file.name}}</span>
+                <button type="button" class="remove-btn" (click)="removeFile(i)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <!-- Remove the (click) event from the submit button since ngSubmit already handles form submission -->
+        <button type="submit" class="submit-btn">
+          <span class="btn-content">
+            <i class="fas" [class.fa-user-plus]="!isEditing" [class.fa-user-edit]="isEditing"></i>
+            <span class="btn-text">{{isEditing ? 'Update' : 'Add'}} Associate</span>
+          </span>
+          <span class="btn-shine"></span>
+        </button>
+        <button type="button" class="cancel-btn" (click)="cancelForm()">
+          <i class="fas fa-times"></i>
+          <span>Cancel</span>
+        </button>
+      </div>
+    </form>
+  </div>
+  <!-- Associate List -->
+  <div class="associate-list">
+    <!-- <div *ngIf="isLoading" class="loading-spinner">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div> -->
+    <!-- *ngIf="!isLoading" -->
+    <div >
+      <div class="search-container">
+        <div class="search-input">
+          <i class="fas fa-search"></i>
+          <input 
+            type="text" 
+            placeholder="Search associates..." 
+            (keyup)="applyFilter($event)"
+            [(ngModel)]="searchTerm"
+            [ngModelOptions]="{standalone: true}"
+          >
+        </div>
+      </div>
+      
+      <!-- Material Table -->
+      <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+        
+        <!-- Serial Number Column -->
+        <ng-container matColumnDef="serialNumber">
+          <th mat-header-cell *matHeaderCellDef> SL </th>
+          <td mat-cell *matCellDef="let i = index"> {{(pageNumber - 1) * pageSize + i + 1}} </td>
+        </ng-container>
+        
+        <!-- Name English Column -->
+        <ng-container matColumnDef="nameEnglish">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Name (English) </th>
+          <td mat-cell *matCellDef="let associate"> {{associate.nameEnglish}} </td>
+        </ng-container>
+        
+        <!-- Name Bengali Column -->
+        <ng-container matColumnDef="nameBengali">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Name (Bengali) </th>
+          <td mat-cell *matCellDef="let associate"> {{associate.nameBengali}} </td>
+        </ng-container>
+        
+        <!-- Primary Phone Column -->
+        <ng-container matColumnDef="primaryNumber">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Primary Phone </th>
+          <td mat-cell *matCellDef="let associate"> {{associate.primaryNumber}} </td>
+        </ng-container>
+        
+        <!-- NID Column -->
+        <ng-container matColumnDef="nid">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> NID </th>
+          <td mat-cell *matCellDef="let associate"> {{associate.nid}} </td>
+        </ng-container>
+        
+        <!-- Address Column -->
+        <ng-container matColumnDef="address">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Address </th>
+          <td mat-cell *matCellDef="let associate"> {{associate.address}} </td>
+        </ng-container>
+        
+        <!-- Guarantor Column -->
+        <ng-container matColumnDef="guarantor">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Guarantor </th>
+          <td mat-cell *matCellDef="let associate"> {{associate.guarantors && associate.guarantors.length > 0 ? associate.guarantors[0].name : 'N/A'}} </td>
+        </ng-container>
+        
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef> Actions </th>
+          <td mat-cell *matCellDef="let associate" class="actions">
+            <button class="btn-edit" (click)="editAssociate(associate)">
+              <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="btn-delete" (click)="deleteAssociate(associate.id)">
+              <i class="fas fa-trash"></i> Delete
+            </button>
+          </td>
+        </ng-container>
+        
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        
+        <!-- Row shown when there is no matching data -->
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell no-data" colspan="8">No associates found</td>
+        </tr>
+      </table>
+      
+      <!-- Pagination Controls -->
+      <div class="pagination-container" *ngIf="totalItems > 0">
+        <div class="pagination-info">
+          Showing {{(pageNumber - 1) * pageSize + 1}} to {{pageNumber * pageSize > totalItems ? totalItems : pageNumber * pageSize}} of {{totalItems}} entries
+        </div>
+        
+        <div class="pagination-controls">
+          <button 
+            class="pagination-btn" 
+            [disabled]="!hasPreviousPage" 
+            (click)="previousPage()"
+            [class.disabled]="!hasPreviousPage">
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          
+          <div class="page-numbers">
+            <button 
+              *ngFor="let page of getPaginationArray()" 
+              class="page-number" 
+              [class.active]="page === pageNumber"
+              [class.ellipsis]="page < 0"
+              (click)="page > 0 ? goToPage(page) : null">
+              {{page > 0 ? page : '...'}}
+            </button>
+          </div>
+          
+          <button 
+            class="pagination-btn" 
+            [disabled]="!hasNextPage" 
+            (click)="nextPage()"
+            [class.disabled]="!hasNextPage">
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        
+        <div class="page-size-selector">
+          <label for="pageSize">Items per page:</label>
+          <select #pageSizeSelect id="pageSize" (change)="changePageSize(+pageSizeSelect.value)">
+            <option [selected]="pageSize === 10" value="10">10</option>
+            <option [selected]="pageSize === 25" value="25">25</option>
+            <option [selected]="pageSize === 50" value="50">50</option>
+            <option [selected]="pageSize === 100" value="100">100</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

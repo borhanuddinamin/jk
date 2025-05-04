@@ -1,0 +1,390 @@
+<div class="product-management">
+  <div class="header">
+    <h2>Product Management</h2>
+    <div class="header-actions">
+      <button class="btn-category" (click)="openCategoryModal()">Manage Categories</button>
+      <button class="btn-add" (click)="addProduct()">Add Product</button>
+    </div>
+  </div>
+
+  <!-- Category Modal -->
+  <div class="modal-overlay" *ngIf="showCategoryModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Manage Categories</h3>
+        <button class="close-btn" (click)="closeCategoryModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="category-form">
+          <input type="text" [(ngModel)]="newCategory" placeholder="Enter new category">
+          <button (click)="addCategory()" [disabled]="!newCategory.trim() || isCategoryLoading">
+            <span *ngIf="isCategoryLoading" class="spinner-sm"></span>
+            Add
+          </button>
+        </div>
+
+        <div class="category-list">
+          <div class="category-item" *ngFor="let category of categories">
+            <span>{{ category.name }}</span>
+            <button class="delete-btn" (click)="deleteCategory(category.id)">&times;</button>
+          </div>
+          <div *ngIf="categories.length === 0" class="no-categories">
+            No categories found
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <!-- <div class="loading-overlay" *ngIf="isLoading">
+    <div class="spinner"></div>
+  </div> -->
+
+  <!-- Product Form -->
+  <div class="form-container" *ngIf="showForm">
+    <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+      <div class="form-grid four-column">
+        <!-- Row 1 -->
+        <div class="form-group">
+          <label>Product Name (English) <span class="required">*</span></label>
+          <input type="text" formControlName="nameEnglish" placeholder="Enter product name in English">
+        </div>
+
+        <div class="form-group bangla-input">
+          <label>Product Name (Bangla)</label>
+          <input type="text" formControlName="nameBangla" placeholder="বাংলায় পণ্যের নাম লিখুন">
+        </div>
+
+        <div class="form-group">
+          <label>Product Code <span class="required">*</span></label>
+          <div class="code-input-container">
+            <input type="text" formControlName="productCode" placeholder="Enter unique product code">
+            <button type="button" class="generate-code-btn" (click)="generateProductCode()">
+              <i class="fas fa-magic"></i> Auto-generate
+            </button>
+          </div>
+          <small class="code-hint">Code is auto-generated based on product name and quantity</small>
+        </div>
+
+        <div class="form-group">
+          <label>Entry Date <span class="required">*</span></label>
+          <input type="date" formControlName="entryDate">
+        </div>
+
+        <!-- Row 2 -->
+        <div class="form-group numeric-input">
+          <label>Cost Price (Tk)</label>
+          <input type="number" formControlName="costPrice" placeholder="0.00">
+        </div>
+
+        <div class="form-group numeric-input">
+          <label>Sale Price (Tk)</label>
+          <input type="number" formControlName="salePrice" placeholder="0.00">
+        </div>
+
+        <div class="form-group numeric-input">
+          <label>Installment Price (Tk)</label>
+          <input type="number" formControlName="installmentPrice" placeholder="0.00">
+        </div>
+
+        <div class="form-group numeric-input">
+          <label>Minimum Down Payment (Tk)</label>
+          <input type="number" formControlName="minimumDownPayment" placeholder="0.00">
+        </div>
+
+        <div class="form-group">
+          <label>Quantity <span class="required">*</span></label>
+          <input type="number" formControlName="quantity" (input)="onQuantityChange($event)" min="1">
+        </div>
+
+        <!-- Row 3 -->
+        <div class="form-group">
+          <label>Category <span class="required">*</span></label>
+          <select formControlName="categoryId">
+            <option value="">Select Category</option>
+            <option *ngFor="let cat of categories" [value]="cat.id">{{cat.name}}</option>
+          </select>
+        </div>
+
+        <!-- Executive Associate dropdown -->
+        <!-- Fix the Executive Associate dropdown section -->
+        <div class="form-group">
+          <label>Executive Associate</label>
+          <mat-form-field class="full-width">
+            <input type="text"
+                   placeholder="Search executive associate..."
+                   matInput
+                   [formControl]="executiveAssociateControl"
+                   [matAutocomplete]="auto">
+            <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayExecutiveAssociateFn">
+              <mat-option *ngFor="let supplier of filteredSuppliers" [value]="supplier">
+                {{supplier.name}}
+              </mat-option>
+              <mat-option *ngIf="filteredSuppliers.length === 0" disabled>
+                No executive associates found
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select formControlName="status">
+            <option [ngValue]="true">Available</option>
+            <option [ngValue]="false">Unavailable</option>
+          </select>
+        </div>
+
+        <!-- Empty cell to maintain 4-column layout -->
+        <div class="form-group empty-cell"></div>
+
+        <!-- Image and Description Row -->
+        <div class="full-width image-description-row">
+          <!-- Product Image -->
+          <div class="form-group image-container">
+            <label>Product Image</label>
+            <div class="image-upload-container">
+              <div class="image-preview" *ngIf="imagePreview">
+                <img [src]="imagePreview" alt="Product preview">
+              </div>
+              
+              <div class="camera-preview" *ngIf="showCamera">
+                <video id="camera-feed" autoplay playsinline></video>
+                <div class="camera-controls">
+                  <button type="button" class="capture-btn" (click)="captureImage()">
+                    <i class="fas fa-camera"></i> Capture
+                  </button>
+                  <button type="button" class="cancel-btn" (click)="stopCamera()">
+                    <i class="fas fa-times"></i> Cancel
+                  </button>
+                </div>
+              </div>
+        
+              <div class="upload-buttons" *ngIf="!showCamera">
+                <button type="button" class="upload-btn" (click)="fileInput.click()">
+                  <i class="fas fa-upload"></i> Upload Image
+                </button>
+                <button type="button" class="camera-btn" (click)="startCamera()">
+                  <i class="fas fa-camera"></i> Take Photo
+                </button>
+              </div>
+              <input
+                #fileInput
+                type="file"
+                accept="image/*"
+                style="display: none"
+                (change)="handleImageUpload($event)"
+              >
+            </div>
+          </div>
+          
+          <!-- Description -->
+          <div class="form-group description-container">
+            <label>Description</label>
+            <textarea formControlName="description" placeholder="Enter detailed product description" rows="10"></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Generated Product Codes Preview -->
+      <div class="similar-products-preview" *ngIf="showProductPreview">
+        <h4>Generated Product Codes</h4>
+        <div class="products-grid scrollable-grid">
+          <div class="product-item" *ngFor="let code of generatedProductCodes; let i = index">
+            <div class="product-info">
+              <span class="product-name">{{productForm.get('nameEnglish')?.value || 'New Product'}}</span>
+              <span class="product-code">{{code}}</span>
+            </div>
+            <span class="product-quantity">Item {{i + 1}} of {{productForm.get('quantity')?.value}}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" [disabled]="!productForm.valid || isLoading">
+          <span *ngIf="isLoading" class="spinner-sm"></span>
+          {{isEditing ? 'Update' : 'Add'}} Product
+        </button>
+        <button type="button" class="cancel-btn" (click)="cancelForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Search input above the table -->
+  <!-- <div class="search-container">
+    <input type="text" 
+           placeholder="Search by name or code"
+           (input)="onSearch($any($event.target).value)">
+  </div> -->
+
+  <!-- Product List -->
+  <div class="product-list">
+    <div class="search-container">
+      <div class="search-input">
+        <i class="fas fa-search"></i>
+        <input 
+          type="text" 
+          placeholder="Search Products..." 
+          (keyup)="applyFilter($event)"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{standalone: true}"
+        >
+      </div>
+    </div>
+    <table mat-table [dataSource]="dataSource" matSort>
+      <!-- SL Column -->
+      <ng-container matColumnDef="sl">
+        <th mat-header-cell *matHeaderCellDef>SL</th>
+        <td mat-cell *matCellDef="let product; let i = index">
+          {{(pageNumber - 1) * pageSize + i + 1}}
+        </td>
+      </ng-container>
+      
+      <!-- Name (English) Column -->
+      <ng-container matColumnDef="nameEnglish">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Name (English)</th>
+        <td mat-cell *matCellDef="let product">{{product.nameEnglish}}</td>
+      </ng-container>
+  
+      <!-- Name (Bangla) Column -->
+      <ng-container matColumnDef="nameBangla">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Name (Bangla)</th>
+        <td mat-cell *matCellDef="let product">{{product.nameBangla}}</td>
+      </ng-container>
+  
+      <!-- Code Column -->
+      <ng-container matColumnDef="productCode">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Code</th>
+        <td mat-cell *matCellDef="let product">
+          <ng-container *ngIf="product.productDetails && product.productDetails.length > 0; else singleCode">
+            {{ product.productDetails[0].code }} 
+            <ng-container *ngIf="product.productDetails.length > 1">
+              - {{ product.productDetails[product.productDetails.length-1].code }}
+            </ng-container>
+          </ng-container>
+          <ng-template #singleCode>{{ product.productCode || 'N/A' }}</ng-template>
+        </td>
+      </ng-container>
+  
+      <!-- Category Column -->
+      <ng-container matColumnDef="categoryName">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Category</th>
+        <td mat-cell *matCellDef="let product">{{product.category?.name || product.categoryName || 'N/A'}}</td>
+      </ng-container>
+  
+      <!-- Executive Associate Column -->
+      <ng-container matColumnDef="executiveAssociateName">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Executive Associate</th>
+        <td mat-cell *matCellDef="let product">{{product.executiveAssociate?.name || product.executiveAssociateName || 'N/A'}}</td>
+      </ng-container>
+  
+      <!-- Cost Price Column -->
+      <ng-container matColumnDef="costPrice">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Cost Price</th>
+        <td mat-cell *matCellDef="let product" class="currency-cell">৳{{product.costPrice}}</td>
+      </ng-container>
+  
+      <!-- Installment Price Column -->
+      <ng-container matColumnDef="installmentPrice">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Installment Price</th>
+        <td mat-cell *matCellDef="let product" class="currency-cell">৳{{product.installmentPrice}}</td>
+      </ng-container>
+  
+      <!-- Down Payment Column -->
+      <ng-container matColumnDef="minimumDownPayment">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Down Payment</th>
+        <td mat-cell *matCellDef="let product" class="currency-cell">৳{{product.minimumDownPayment}}</td>
+      </ng-container>
+  
+      <!-- Status Column -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+        <td mat-cell *matCellDef="let product" class="status-cell">
+          <span [class]="'status-' + (product.status === true || product.status === 1 ? 'available' : 'unavailable')">
+            {{product.status === true || product.status === 1 ? 'Available' : 'Unavailable'}}
+          </span>
+        </td>
+      </ng-container>
+  
+      <!-- Quantity Column -->
+      <ng-container matColumnDef="quantity">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Quantity</th>
+        <td mat-cell *matCellDef="let product">{{product.quantity}}</td>
+      </ng-container>
+  
+      <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let product">
+            <div class="action-buttons">
+              <button class="edit-btn" (click)="editProduct(product)">
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <button class="delete-btn" (click)="deleteProduct(product.id)">
+               <i class="fas fa-trash"></i> Delete
+              </button>
+            </div>
+          </td>
+        </ng-container>
+    
+        <!-- No Data Row -->
+        <tr class="mat-row no-data-row" *matNoDataRow>
+          <td class="mat-cell" colspan="11">No products found</td>
+        </tr>
+  
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+      
+      </table>
+      <!-- Pagination Controls (Updated to match employee-management style) -->
+      <div class="pagination-container">
+        <div class="pagination-info">
+          Showing {{(pageNumber - 1) * pageSize + 1}} to {{Math.min(pageNumber * pageSize, totalItems)}} of {{totalItems}} entries
+        </div>
+        
+        <div class="pagination-controls">
+          <button 
+            class="pagination-btn" 
+            [disabled]="!hasPreviousPage" 
+            (click)="previousPage()"
+            [class.disabled]="!hasPreviousPage">
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          
+          <div class="page-numbers">
+            <ng-container *ngFor="let page of getPaginationArray()">
+              <button 
+                class="page-number" 
+                [class.active]="page === pageNumber"
+                [class.ellipsis]="page === -1"
+                (click)="page > 0 ? goToPage(page) : null">
+                {{page > 0 ? page : '...'}}
+              </button>
+            </ng-container>
+          </div>
+          
+          <button 
+            class="pagination-btn" 
+            [disabled]="!hasNextPage" 
+            (click)="nextPage()"
+            [class.disabled]="!hasNextPage">
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        
+        <div class="page-size-selector">
+          <label for="pageSize">Items per page:</label>
+          <select #pageSizeSelect id="pageSize" (change)="changePageSize(+pageSizeSelect.value)">
+            <option [selected]="pageSize === 10" value="10">10</option>
+            <option [selected]="pageSize === 25" value="25">25</option>
+            <option [selected]="pageSize === 50" value="50">50</option>
+            <option [selected]="pageSize === 100" value="100">100</option>
+          </select>
+        </div>
+      </div>
+      
+    </div>
+  </div>

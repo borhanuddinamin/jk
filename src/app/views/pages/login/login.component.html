@@ -1,0 +1,68 @@
+<div class="bg-light dark:bg-transparent min-vh-100 d-flex flex-row align-items-center">
+  <c-container breakpoint="md">
+    <c-row class="justify-content-center">
+      <c-col lg="6" xl="5">
+        <c-card class="p-4">
+          <c-card-body>
+            <form [formGroup]="loginForm" (ngSubmit)="onLogin()" cForm>
+              <div class="text-center mb-4">
+                <img src="assets/images/logo.png" alt="Logo" class="mb-3" style="height: 60px;">
+                <h1 class="mb-1">Welcome Back</h1>
+                <p class="text-body-secondary">Sign in to continue to JK Associate</p>
+              </div>
+              
+              <div *ngIf="errorMessage" class="alert alert-danger mb-3">
+                {{ errorMessage }}
+              </div>
+              
+              <c-input-group class="mb-3">
+                <span cInputGroupText>
+                  <svg cIcon name="cilPhone"></svg>
+                </span>
+                <input 
+                  formControlName="phone"
+                  autoComplete="tel"
+                  cFormControl 
+                  placeholder="Phone Number" 
+                />
+              </c-input-group>
+              
+              <c-input-group class="mb-4">
+                <span cInputGroupText>
+                  <svg cIcon name="cilLockLocked"></svg>
+                </span>
+                <input
+                  formControlName="password"
+                  autoComplete="current-password"
+                  cFormControl
+                  placeholder="Password"
+                  type="password"
+                />
+              </c-input-group>
+              
+              <c-row>
+                <c-col xs="6">
+                  <button 
+                    type="submit" 
+                    cButton 
+                    class="px-4" 
+                    color="primary"
+                    [disabled]="loginForm.invalid || isLoading"
+                  >
+                    <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    Login
+                  </button>
+                </c-col>
+                <c-col class="text-right" xs="6">
+                  <button cButton class="px-0" color="link" type="button" (click)="onForgotPassword()">
+                    Forgot password?
+                  </button>
+                </c-col>
+              </c-row>
+            </form>
+          </c-card-body>
+        </c-card>
+      </c-col>
+    </c-row>
+  </c-container>
+</div>

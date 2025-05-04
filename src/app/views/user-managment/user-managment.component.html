@@ -1,0 +1,166 @@
+<div class="user-management">
+  <div class="header">
+    <h2>User Management</h2>
+    <button class="btn-add" (click)="addUser()">
+      Add New User
+    </button>
+  </div>
+
+  <!-- User Form -->
+  <div class="form-container" *ngIf="showForm">
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+      <div class="form-grid">
+        <!-- Combined User Section -->
+        <div class="form-section">
+          <h3 class="section-title">User Details</h3>
+          <div class="section-grid">
+            <!-- User Search -->
+            <div class="form-group">
+              <label>Search/Select User</label>
+              <input type="text" 
+                     placeholder="Search by name"
+                     (input)="onSearch($any($event.target).value)">
+              <div class="search-results" *ngIf="filteredUsers.length > 0">
+                <div class="user-item" 
+                     *ngFor="let user of filteredUsers"
+                     (click)="selectUser(user)">
+                  {{user.name}}
+                </div>
+              </div>
+            </div>
+
+            <!-- User Information *ngIf="selectedUser" -->
+            <div class="form-group" >
+              <label>Name</label>
+              <input type="text" formControlName="name" placeholder="Enter user name">
+            </div>
+
+            <div class="form-group">
+              <label>Roles</label>
+              <select multiple formControlName="role">
+                <option *ngFor="let role of roles" [value]="role">{{role}}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Status</label>
+              <select formControlName="status">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Primary Phone Number</label>
+              <input type="text" formControlName="primaryPhoneNumber" placeholder="primary Phone Number">
+            </div>
+            <div class="form-group">
+              <label>Set Password</label>
+              <div class="password-section">
+                <input type="text" [(ngModel)]="password" [ngModelOptions]="{standalone: true}" 
+                       placeholder="Generate or enter password">
+                <button type="button" class="generate-btn" (click)="generatePassword()">
+                  Generate
+                </button>
+                <button type="button" class="save-btn" (click)="savePassword()" 
+                        [disabled]="!password">
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="submit-btn" [disabled]="!userForm.valid">
+          <span class="btn-content">
+            <i class="fas" [class.fa-user-plus]="!isEditing" [class.fa-user-edit]="isEditing"></i>
+            <span class="btn-text">{{isEditing ? 'Update' : 'Add'}} User</span>
+          </span>
+          <span class="btn-shine"></span>
+        </button>
+        <button type="button" class="cancel-btn" (click)="cancelForm()">
+          <i class="fas fa-times"></i>
+          <span>Cancel</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Role Management Modal -->
+  <div class="modal-overlay" *ngIf="showRoleModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Manage Roles - {{selectedUser?.name}}</h3>
+        <button class="close-btn" (click)="closeRoleModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="roles-grid">
+          <div class="role-item" *ngFor="let role of roles"
+               [class.active]="selectedUser && hasRole(selectedUser, role)"
+               (click)="toggleRole(role)">
+            <i class="fas" [class.fa-check-circle]="selectedUser && hasRole(selectedUser, role)"
+               [class.fa-circle]="!selectedUser || !hasRole(selectedUser, role)"></i>
+            <span>{{role}}</span>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="submit-btn" (click)="saveRoles()">Save Roles</button>
+          <button type="button" class="cancel-btn" (click)="closeRoleModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User List -->
+  <div class="user-list">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Roles</th>
+          <th>Status</th>
+          <th>Primary Phone</th>
+          <th>Last Login</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td class="user-name">
+            <div class="name">{{user.name}}</div>
+            <div class="email">{{user.email}}</div>
+          </td>
+          <td class="roles-cell">
+            <div class="role-tags">
+              <span class="role-tag" *ngFor="let role of user.role">{{role}}</span>
+            </div>
+          </td>
+          <td>
+            <div class="status-container">
+              <div class="status-indicator" [class]="'status-' + user.status"></div>
+              <span class="status-text">{{user.status | titlecase}}</span>
+            </div>
+          </td>
+          <td>{{user.primaryPhoneNumber || 'N/A'}}</td>
+          <td>{{user.lastLogin || 'Never'}}</td>
+          <td class="actions">
+            <div class="action-buttons">
+              <button class="edit-btn" (click)="editUser(user)" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="role-btn" (click)="manageRoles(user)" title="Manage Roles">
+                <i class="fas fa-user-tag"></i>
+              </button>
+              <button class="delete-btn" (click)="deleteUser(user.id)" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

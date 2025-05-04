@@ -1,0 +1,244 @@
+<div class="supplier-management">
+  <div class="header">
+    <h2>Executive Associate Management</h2>
+    <button class="btn-add" (click)="addSupplier()">
+      Add New Executive Associate
+    </button>
+  </div>
+
+  <!-- Supplier Form -->
+  <div class="form-container" *ngIf="showForm">
+    <form [formGroup]="supplierForm" (ngSubmit)="onSubmit()">
+      <div class="form-grid">
+        <!-- Personal Information Section -->
+        <div class="form-section">
+          <h3 class="section-title">Executive Associate Information</h3>
+          <div class="section-grid">
+            <div class="form-group">
+              <label>Name <span class="required">*</span></label>
+              <input type="text" formControlName="name" placeholder="Enter supplier name">
+            </div>
+
+            <div class="form-group">
+              <label>Vendor Name <span class="required">*</span></label>
+              <input type="text" formControlName="vendorName" placeholder="Enter vendor name">
+            </div>
+
+            <div class="form-group">
+              <label>Primary Number <span class="required">*</span></label>
+              <input type="tel" formControlName="phone1" placeholder="01XXXXXXXXX">
+            </div>
+
+            <div class="form-group">
+              <label>Contact Number</label>
+              <input type="tel" formControlName="phone2" placeholder="01XXXXXXXXX">
+            </div>
+
+            <div class="form-group">
+              <label>NID Number <span class="required">*</span></label>
+              <input type="text" formControlName="nidNumber" placeholder="Enter NID number">
+            </div>
+
+            <div class="form-group">
+              <label>Status</label>
+              <select formControlName="status">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Address <span class="required">*</span></label>
+              <textarea formControlName="address" placeholder="Enter full address" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attachments Section -->
+        <div class="form-section">
+          <h3 class="section-title">Attachments</h3>
+          <div class="attachment-container">
+            <div class="file-upload">
+              <input
+                type="file"
+                multiple
+                #fileInput
+                (change)="handleFileUpload($event)"
+                accept=".pdf,.jpg,.jpeg,.png"
+                style="display: none"
+              >
+              <button type="button" class="upload-btn" (click)="fileInput.click()">
+                <i class="fas fa-upload"></i> Upload Files
+              </button>
+            </div>
+
+            <div class="file-list" *ngIf="selectedFiles.length > 0">
+              <div class="file-item" *ngFor="let file of selectedFiles; let i = index">
+                <span class="file-name">{{file.name}}</span>
+                <button type="button" class="remove-btn" (click)="removeFile(i)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="submit-btn" [disabled]="!supplierForm.valid">
+          <span class="btn-content">
+            <i class="fas" [class.fa-plus-circle]="!isEditing" [class.fa-edit]="isEditing"></i>
+            <span class="btn-text">{{isEditing ? 'Update' : 'Add'}} Executive Associate</span>
+          </span>
+          <span class="btn-shine"></span>
+        </button>
+        <button type="button" class="cancel-btn" (click)="cancelForm()">
+          <i class="fas fa-times"></i>
+          <span>Cancel</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Supplier List -->
+  <div class="supplier-list">
+    <!-- <div *ngIf="isLoading" class="loading-spinner">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div> -->
+    <!-- *ngIf="!isLoading" -->
+    <div >
+      <div class="search-container">
+        <div class="search-input">
+          <i class="fas fa-search"></i>
+          <input 
+            type="text" 
+            placeholder="Search suppliers..." 
+            (keyup)="applyFilter($event)"
+            [(ngModel)]="searchTerm"
+            [ngModelOptions]="{standalone: true}"
+          >
+        </div>
+      </div>
+      
+      <!-- Material Table -->
+      <!-- Update the table columns to match the API response field names -->
+      <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+        
+        <!-- Serial Number Column -->
+        <ng-container matColumnDef="serialNumber">
+          <th mat-header-cell *matHeaderCellDef> SL </th>
+          <td mat-cell *matCellDef="let i = index"> {{(pageNumber - 1) * pageSize + i + 1}} </td>
+        </ng-container>
+        
+        <!-- Name Column -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
+          <td mat-cell *matCellDef="let supplier"> {{supplier.nameEnglish}} </td>
+        </ng-container>
+        
+        <!-- Vendor Name Column -->
+        <ng-container matColumnDef="vendorName">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Vendor Name </th>
+          <td mat-cell *matCellDef="let supplier"> {{supplier.vendorName}} </td>
+        </ng-container>
+        
+        <!-- Phone Column -->
+        <ng-container matColumnDef="phone1">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Phone </th>
+          <td mat-cell *matCellDef="let supplier"> {{supplier.primaryNumber}} </td>
+        </ng-container>
+        
+        <!-- NID Column -->
+        <ng-container matColumnDef="nidNumber">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> NID </th>
+          <td mat-cell *matCellDef="let supplier"> {{supplier.nid}} </td>
+        </ng-container>
+        
+        <!-- Address Column -->
+        <ng-container matColumnDef="address">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Address </th>
+          <td mat-cell *matCellDef="let supplier"> {{supplier.address}} </td>
+        </ng-container>
+        
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
+          <td mat-cell *matCellDef="let supplier"> 
+            <span [class]="'status-' + (supplier.isActive ? 'active' : 'inactive')">
+              {{supplier.isActive ? 'Active' : 'Inactive'}}
+            </span>
+          </td>
+        </ng-container>
+        
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef> Actions </th>
+          <td mat-cell *matCellDef="let supplier" class="actions">
+            <button class="btn-edit" (click)="editSupplier(supplier)">
+              <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="btn-delete" (click)="deleteSupplier(supplier.id)">
+              <i class="fas fa-trash"></i> Delete
+            </button>
+          </td>
+        </ng-container>
+        
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        
+        <!-- Row shown when there is no matching data -->
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell no-data" colspan="8">No suppliers found</td>
+        </tr>
+      </table>
+      
+      <!-- Pagination Controls -->
+      <div class="pagination-container" *ngIf="totalItems > 0">
+        <div class="pagination-info">
+          Showing {{(pageNumber - 1) * pageSize + 1}} to {{pageNumber * pageSize > totalItems ? totalItems : pageNumber * pageSize}} of {{totalItems}} entries
+        </div>
+        
+        <div class="pagination-controls">
+          <button 
+            class="pagination-btn" 
+            [disabled]="!hasPreviousPage" 
+            (click)="previousPage()"
+            [class.disabled]="!hasPreviousPage">
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          
+          <div class="page-numbers">
+            <button 
+              *ngFor="let page of [].constructor(totalPages > 5 ? 5 : totalPages); let i = index"
+              [class.active]="pageNumber === i + 1"
+              (click)="goToPage(i + 1)"
+              class="page-number">
+              {{i + 1}}
+            </button>
+          </div>
+          
+          <button 
+            class="pagination-btn" 
+            [disabled]="!hasNextPage" 
+            (click)="nextPage()"
+            [class.disabled]="!hasNextPage">
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+
+        <div class="page-size-selector">
+          <label for="pageSize">Items per page:</label>
+          <select #pageSizeSelect id="pageSize" (change)="changePageSize(+pageSizeSelect.value)">
+            <option [selected]="pageSize === 10" value="10">10</option>
+            <option [selected]="pageSize === 25" value="25">25</option>
+            <option [selected]="pageSize === 50" value="50">50</option>
+            <option [selected]="pageSize === 100" value="100">100</option>
+          </select>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
