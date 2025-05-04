@@ -1,0 +1,1 @@
+import{$b as i,_b as o,xc as a,yb as n}from"./chunk-KIEVHPHK.js";import"./chunk-7CGTOI24.js";var p=(()=>{class t{static{this.\u0275fac=function(e){return new(e||t)}}static{this.\u0275cmp=n({type:t,selectors:[["app-installment"]],decls:2,vars:0,template:function(e,m){e&1&&(o(0,"p"),a(1,"installment works!"),i())},encapsulation:2})}}return t})();export{p as InstallmentComponent};
