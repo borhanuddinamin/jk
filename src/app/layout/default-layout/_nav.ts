@@ -57,6 +57,17 @@ export const navItems: INavData[] = [
         url: '/user-management',
         iconComponent: { name: 'cil-speedometer' }
         
+      },
+      {
+        name: 'chart-of-accounts',
+        url: '/chart-of-accounts',
+        iconComponent: { name: 'cil-speedometer' }
+        
+      },{
+        name: 'voucher-entry',
+        url: '/voucher-entry',
+        iconComponent: { name: 'cil-speedometer' }
+        
       }
 ]
 //   {

@@ -1,9 +1,24 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { ProgressComponent, ProgressBarComponent } from '@coreui/angular';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
+import { MatIconModule } from '@angular/material/icon';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+import { catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
+import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 interface Product {
   id: number;
@@ -14,6 +29,9 @@ interface Product {
 interface Associate {
   id: number;
   name: string;
+  associateType?: number;
+  primaryNumber?: string;
+  vendorName?: string;
 }
 
 interface Customer {
@@ -68,13 +86,45 @@ interface InstallmentItem {
 
 @Component({
   selector: 'app-sales-product',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgSelectModule, ProgressComponent, ProgressBarComponent],
   templateUrl: './sales-product.component.html',
-  styleUrl: './sales-product.component.scss',
+  styleUrls: ['./sales-product.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ReactiveFormsModule, 
+    NgSelectModule, 
+    ProgressComponent, 
+    ProgressBarComponent,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatIconModule,
+    MatAutocompleteModule,
+    MatInputModule,
+    MatFormFieldModule
+  ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class SalesProductComponent implements OnInit {
+  // Add this property to control form visibility
+  showForm: boolean = true;
+  private toastr = inject(ToastrService);
+
+  // Data table properties
+  dataSource: MatTableDataSource<any> = new MatTableDataSource<any>([]);
+  displayedColumns: string[] = ['sl', 'invoiceNumber', 'customerName', 'salesType', 'totalAmount', 'downPayment', 'date', 'status', 'actions'];
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
+  
+  // Pagination properties
+  pageSize: number = 10;
+  pageNumber: number = 1;
+  totalItems: number = 0;
+  isLoading: boolean = false;
+  Math = Math; // To use Math in the template
+  searchTerm: string = '';
+  
   salesForm: FormGroup;
   customerForm: FormGroup;
   products: Product[] = [];
@@ -87,7 +137,6 @@ export class SalesProductComponent implements OnInit {
   selectedFiles: File[] = [];
   showCustomerSearchModal = false;
   selectedCustomer: Customer | null = null;
-  searchTerm = '';
   filteredCustomers: Customer[] = [];
   customers: Customer[] = [];
   isSubmitting = false;
@@ -105,7 +154,6 @@ export class SalesProductComponent implements OnInit {
     discount: 0
   };
   
-  // Add the commissionDistribution property inside the class
   commissionDistribution: CommissionDistribution = {
     sales: 0,
     executive: 0,
@@ -114,8 +162,13 @@ export class SalesProductComponent implements OnInit {
   };
 
   installmentPlan: InstallmentItem[] = [];
+  
+  // Associate search properties
+  associateSearchControl = new FormControl();
+  isSearchingAssociate = false;
+  selectedAssociate: Associate | null = null;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private http: HttpClient) {
     this.salesForm = this.fb.group({
       products: [[], [Validators.required, Validators.minLength(1)]],
       salesPrice: [{ value: 0, disabled: true }],
@@ -132,6 +185,7 @@ export class SalesProductComponent implements OnInit {
     this.customerForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       phone: ['', [Validators.required, Validators.pattern('^01[0-9]{9}$')]],
+      contactphone: ['', [Validators.pattern('^01[0-9]{9}$')]],
       nidNumber: ['', [Validators.required, Validators.pattern('^[0-9]{10,17}$')]],
       address: ['', Validators.required],
       attachments: [[]]
@@ -168,30 +222,188 @@ export class SalesProductComponent implements OnInit {
     ];
 
     this.filteredProducts = [...this.products];
-    this.filteredAssociates = [...this.associates];
-
-    this.customers = [
-      {
-        id: 1,
-        name: 'John Doe',
-        phone: '01712345678',
-        address: 'House 123, Road 45, Gulshan 2, Dhaka',
-        nidNumber: '1234567890123',
-        attachments: []
-      },
-      {
-        id: 2,
-        name: 'Jane Smith',
-        phone: '01812345678',
-        address: 'Apartment 4B, Block C, Banani, Dhaka',
-        nidNumber: '9876543210987',
-        attachments: []
-      }
-    ];
+    // this.filteredAssociates = [...this.associates];
     this.filteredCustomers = [...this.customers];
     this.calculateTotals();
+    
+    // Setup associate search
+   
   }
 
+  setupAssociateSearch() {
+    this.associateSearchControl.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(value => {
+          if (typeof value === 'string' && value.trim()) {
+            this.isSearchingAssociate = true;
+            return this.searchAssociates(value.trim());
+          } else {
+            return of([]);
+          }
+        }),
+        catchError(() => {
+          this.isSearchingAssociate = false;
+          return of([]);
+        })
+      )
+      .subscribe(associates => {
+        this.filteredAssociates =[];
+        this.filteredAssociates = associates;
+        this.isSearchingAssociate = false;
+      });
+  }
+
+  searchAssociates(searchTerm: string) {
+    // Default associate type is 2
+    return this.http.get<Associate[]>(`${environment.apiUrl}/Associate/GetAssociate`, {
+      params: {
+        str: searchTerm,
+        associate: '2'
+      }
+    }).pipe(
+      catchError(error => {
+        console.error('Error searching associates:', error);
+        return of([]);
+      })
+    );
+  }
+
+  displayAssociateFn(associate: Associate): string {
+    return associate ? associate.name : '';
+  }
+
+  onAssociateSearchChange(event: Event) {
+    // const value = (event.target as HTMLInputElement).value;
+    // if (!value || value.trim() === '') {
+    //   this.filteredAssociates = [];
+    // }
+
+     this.setupAssociateSearch();
+  }
+
+  onAssociateSelected(event: MatAutocompleteSelectedEvent) {
+    this.selectedAssociate = event.option.value;
+    this.salesForm.patchValue({
+      associate: this.selectedAssociate?.id
+    });
+    
+    // Recalculate associate shares if needed
+    this.calculateAssociateShares();
+  }
+  
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+    this.loadSales();
+  }
+  
+  loadSales(page: number = 1, pageSize: number = 10, searchTerm: string = '') {
+    this.isLoading = true;
+    
+    // Mock data for demonstration - replace with actual API call
+    setTimeout(() => {
+      const mockSales = [
+        {
+          id: 1,
+          invoiceNumber: 'INV-001',
+          date: new Date(),
+          customer: { id: 1, name: 'John Doe' },
+          salesType: 'Cash',
+          totalAmount: 5000,
+          downPayment: 5000,
+          status: 'Completed'
+        },
+        {
+          id: 2,
+          invoiceNumber: 'INV-002',
+          date: new Date(),
+          customer: { id: 2, name: 'Jane Smith' },
+          salesType: 'Installment',
+          totalAmount: 10000,
+          downPayment: 3000,
+          status: 'Pending'
+        },
+        {
+          id: 3,
+          invoiceNumber: 'INV-003',
+          date: new Date(Date.now() - 86400000 * 5), // 5 days ago
+          customer: { id: 3, name: 'Robert Johnson' },
+          salesType: 'Installment',
+          totalAmount: 15000,
+          downPayment: 5000,
+          status: 'Pending'
+        },
+        {
+          id: 4,
+          invoiceNumber: 'INV-004',
+          date: new Date(Date.now() - 86400000 * 10), // 10 days ago
+          customer: { id: 1, name: 'John Doe' },
+          salesType: 'Cash',
+          totalAmount: 3000,
+          downPayment: 3000,
+          status: 'Completed'
+        },
+        {
+          id: 5,
+          invoiceNumber: 'INV-005',
+          date: new Date(Date.now() - 86400000 * 15), // 15 days ago
+          customer: { id: 4, name: 'Sarah Williams' },
+          salesType: 'Installment',
+          totalAmount: 20000,
+          downPayment: 5000,
+          status: 'Cancelled'
+        }
+      ];
+      
+      this.dataSource.data = mockSales;
+      this.totalItems = mockSales.length;
+      this.isLoading = false;
+    }, 500);
+  }
+  
+  handlePageEvent(event: PageEvent) {
+    this.pageSize = event.pageSize;
+    this.pageNumber = event.pageIndex + 1;
+    this.loadSales(this.pageNumber, this.pageSize, this.searchTerm);
+  }
+  
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.searchTerm = filterValue.trim().toLowerCase();
+    this.dataSource.filter = this.searchTerm;
+    
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+  }
+  
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('accessToken');
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
+  }
+
+  viewSale(sale: any) {
+    console.log('View sale', sale);
+    // Implement view functionality
+  }
+  
+  editSale(sale: any) {
+    console.log('Edit sale', sale);
+    this.showForm = true;
+    // Implement edit functionality
+  }
+  
+  deleteSale(id: number) {
+    if (confirm('Are you sure you want to delete this sale?')) {
+      console.log('Delete sale', id);
+      // Implement delete functionality
+    }
+  }
+  
   onProductSelect(selectedProducts: Product[]) {
     if (selectedProducts && selectedProducts.length > 0) {
       this.totalPrice = selectedProducts.reduce((sum, product) => sum + product.price, 0);
@@ -213,11 +425,11 @@ export class SalesProductComponent implements OnInit {
     );
   }
 
-  onAssociateSearch(term: string) {
-    this.filteredAssociates = this.associates.filter(associate =>
-      associate.name.toLowerCase().includes(term.toLowerCase())
-    );
-  }
+  // onAssociateSearch(term: string) {
+  //   this.filteredAssociates = this.associates.filter(associate =>
+  //     associate.name.toLowerCase().includes(term.toLowerCase())
+  //   );
+  // }
 
   calculateInstallmentAmount() {
     const formValues = this.salesForm.getRawValue();
@@ -336,19 +548,22 @@ export class SalesProductComponent implements OnInit {
 
   getFileIcon(file: File): string {
     const type = file.type.toLowerCase();
-    if (type.includes('pdf')) {
-      return 'fa-file-pdf';
-    } else if (type.includes('image')) {
-      return 'fa-file-image';
-    }
-    return 'fa-file';
+    
+    if (type.includes('pdf')) return 'fas fa-file-pdf';
+    if (type.includes('image')) return 'fas fa-file-image';
+    if (type.includes('word') || type.includes('document')) return 'fas fa-file-word';
+    if (type.includes('excel') || type.includes('sheet')) return 'fas fa-file-excel';
+    
+    return 'fas fa-file';
   }
 
   formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
+    
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
@@ -361,8 +576,11 @@ export class SalesProductComponent implements OnInit {
   }
 
   getAssociateName(id: number): string {
+    if (this.selectedAssociate && this.selectedAssociate.id === id) {
+      return this.selectedAssociate.name;
+    }
     const associate = this.associates.find(a => a.id === id);
-    return associate ? associate.name : '';
+    return associate ? associate.name : 'Not selected';
   }
 
   calculateAssociateShares() {
@@ -446,7 +664,6 @@ export class SalesProductComponent implements OnInit {
     }
   }
 
-  // Move the calculateCommissionDistribution method inside the class
   calculateCommissionDistribution() {
     const downPayment = this.salesForm.get('downPayment')?.value || 0;
     const commissionPercentage = this.salesForm.get('downPaymentCommission')?.value || 0;
@@ -501,5 +718,112 @@ export class SalesProductComponent implements OnInit {
 
   calculateTotalInstallmentAmount(): number {
     return this.installmentPlan.reduce((total, item) => total + item.amount, 0);
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const fileList = Array.from(input.files);
+      this.selectedFiles = [...this.selectedFiles, ...fileList];
+    }
+  }
+
+  saveCustomer() {
+    if (this.customerForm.valid) {
+      this.isSubmitting = true;
+      
+      const customerForm = new FormData();
+      customerForm.append('nameEnglish', this.customerForm.get("name")?.value);
+      customerForm.append('PrimaryNumber', this.customerForm.get("phone")?.value);
+      customerForm.append('ContactNumber', this.customerForm.get("contactphone")?.value);
+      customerForm.append('Nid', this.customerForm.get("nidNumber")?.value);
+      customerForm.append('Address', this.customerForm.get("address")?.value);
+      
+      // Add documents/attachments to the form data
+      if (this.selectedFiles && this.selectedFiles.length > 0) {
+        for (let i = 0; i < this.selectedFiles.length; i++) {
+          customerForm.append('documents', this.selectedFiles[i], this.selectedFiles[i].name);
+        }
+      }
+
+      // Make API call to save customer
+      const headers = this.getAuthHeaders();
+      
+      this.http.post(`${environment.apiUrl}/Associate/CustomerCreate`, customerForm, { headers })
+        .pipe(
+          catchError(error => {
+            console.error('Error creating customer', error);
+            this.toastr.error('Failed to create customer. Please try again.', 'Error');
+            this.isSubmitting = false;
+            return of(null);
+          })
+        )
+        .subscribe({
+          next: (response: any) => {
+            if (response) {
+              // Add the new customer to the customers array
+              const newCustomer: Customer = {
+                id: response.id,
+                name: this.customerForm.get("name")?.value,
+                phone: this.customerForm.get("phone")?.value,
+                address: this.customerForm.get("address")?.value,
+                nidNumber: this.customerForm.get("nidNumber")?.value,
+                attachments: this.selectedFiles
+              };
+              
+              this.customers.push(newCustomer);
+              this.selectedCustomer = newCustomer;
+              
+              // Show success message
+              this.toastr.success('Customer created successfully', 'Success');
+              
+              // Close the modal and reset form
+              this.closeCustomerModal();
+            }
+            this.isSubmitting = false;
+          }
+        });
+    }
+  }
+
+  /**
+   * Cancels the current form and shows the sales data table
+   */
+  cancelForm(): void {
+    // Reset the form to its initial state
+    this.salesForm.reset();
+    this.installmentPlan = [];
+    this.selectedCustomer = null;
+    
+    // Hide the form and show the data table
+    this.showForm = false;
+    
+    // Reset any other state variables as needed
+    this.totals = {
+      downPayment: 0,
+      salesPrice: 0,
+      downPaymentCommission: 0,
+      discount: 0
+    };
+    this.associateShares = {
+      sales: 0,
+      executive: 0,
+      finance: 0,
+      director: 0
+    };
+  }
+  
+  /**
+   * Shows the form for creating a new sale
+   */
+  addSale(): void {
+    this.showForm = true;
+    // Initialize the form with default values if needed
+    this.salesForm.patchValue({
+      salesType: 'Cash',
+      downPayment: 0,
+      downPaymentCommission: 0,
+      discount: 0
+    });
   }
 }

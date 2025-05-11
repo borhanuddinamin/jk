@@ -133,49 +133,6 @@ export class EmployeeManagementComponent implements OnInit {
   // You'll need to store the original list of associates
   allAssociates: Associate[] = [];
   
-  // // Update your loadAssociates method to store the original list
-  // loadAssociates(pageNumber: number = 1, pageSize: number = 10) {
-  //   this.isLoading = true;
-  //   const _url = `${environment.apiUrl}${APIs.Associate.GetAll}?pageNumber=${pageNumber}&pageSize=${pageSize}`;
-    
-  //   this.httpHelper
-  //     .httpGet<any>(_url, {
-  //       headers: this.httpHelper.getDefaultAuthHeaders()
-  //     })
-  //     .pipe(
-  //       map((res) => res),
-  //       catchError((err) => {
-  //         console.error('Error loading associates', err);
-  //         this.errorMessage = 'Failed to load associates. Please try again.';
-  //         this.toastr.error('Failed to load associates', 'Error');
-  //         return of({ items: [], totalItems: 0, pageNumber: 1, pageSize: 10, totalPages: 0, hasPreviousPage: false, hasNextPage: false });
-  //       })
-  //     )
-  //     .subscribe({
-  //       next: (data) => {
-  //         // Update the associates array with the items from the response
-  //         this.associates = data.items;
-          
-  //         // Update pagination properties
-  //         this.totalItems = data.totalItems;
-  //         this.pageNumber = data.pageNumber;
-  //         this.pageSize = data.pageSize;
-  //         this.totalPages = data.totalPages;
-  //         this.hasPreviousPage = data.hasPreviousPage;
-  //         this.hasNextPage = data.hasNextPage;
-          
-  //         this.isLoading = false;
-  //         this.toastr.success('Associates loaded successfully', 'Success');
-  //       },
-  //       error: (error) => {
-  //         console.error('Error loading associates', error);
-  //         this.errorMessage = 'Failed to load associates. Please try again.';
-  //         this.toastr.error('Failed to load associates', 'Error');
-  //         this.isLoading = false;
-  //       }
-  //     });
-  // }
-
   // Add pagination navigation methods
   goToPage(page: number) {
     if (page >= 1 && page <= this.totalPages) {
@@ -403,7 +360,7 @@ this.selectedFiles.forEach(file => {
         Authorization: `Bearer ${token}`
       })
 
-      this.http.post('https://localhost:7046/api/Associate/Create', formDataObj, { headers })
+      this.http.post(`${environment.apiUrl}/Associate/Create`, formDataObj, { headers })
       .subscribe({
         next: (res) => {
           console.log('Submitted', res);
@@ -420,31 +377,7 @@ this.selectedFiles.forEach(file => {
       });
 
 
-      // this.httpHelper
-      //   .httpPost<any>(_url, formDataObj, false, {
-      //     headers: this.httpHelper.getDefaultAuthHeaders()
-      //   })
-      //   .pipe(
-      //     catchError((err) => {
-      //       console.error('Error creating associate', err);
-      //       this.errorMessage = `Failed to create associate: ${err.error?.title || err.message || 'Unknown error'}`;
-      //       this.isLoading = false;
-      //       return of(null);
-      //     })
-      //   )
-      //   .subscribe({
-      //     next: () => {
-      //       this.loadAssociates(); // Refresh the list
-      //       this.showForm = false;
-      //       this.isLoading = false;
-      //       this.errorMessage = '';
-      //     },
-      //     error: (error) => {
-      //       console.error('Error creating associate', error);
-      //       this.errorMessage = 'Failed to create associate. Please try again.';
-      //       this.isLoading = false;
-      //     }
-      //   });
+      
     }
   }
 
@@ -564,49 +497,6 @@ ngAfterViewInit() {
     this.dataSource.sort = this.sort;
   }
 }
-
-// // Update loadAssociates to set the dataSource
-// loadAssociates(pageNumber: number = 1, pageSize: number = 10) {
-//   this.isLoading = true;
-//   const _url = `${environment.apiUrl}${APIs.Associate.GetAll}?pageNumber=${pageNumber}&pageSize=${pageSize}`;
-//   console.log(_url);
-//   this.httpHelper
-//     .httpGet<any>(_url, {
-//       headers: this.httpHelper.getDefaultAuthHeaders()
-//     })
-//     .pipe(
-//       map((res) => res),
-//       catchError((err) => {
-//         console.error('Error loading associates', err);
-//         this.errorMessage = 'Failed to load associates. Please try again.';
-//         this.toastr.error('Failed to load associates', 'Error');
-//         return of({ items: [], totalItems: 0, pageNumber: 1, pageSize: 10, totalPages: 0, hasPreviousPage: false, hasNextPage: false });
-//       })
-//     )
-//     .subscribe({
-//       next: (data) => {
-//         // Update the associates array with the items from the response
-//         this.associates = data.items;
-        
-//         // Update pagination properties
-//         this.totalItems = data.totalItems;
-//         this.pageNumber = data.pageNumber;
-//         this.pageSize = data.pageSize;
-//         this.totalPages = data.totalPages;
-//         this.hasPreviousPage = data.hasPreviousPage;
-//         this.hasNextPage = data.hasNextPage;
-        
-//         this.isLoading = false;
-//         this.toastr.success('Associates loaded successfully', 'Success');
-//       },
-//       error: (error) => {
-//         console.error('Error loading associates', error);
-//         this.errorMessage = 'Failed to load associates. Please try again.';
-//         this.toastr.error('Failed to load associates', 'Error');
-//         this.isLoading = false;
-//       }
-//     });
-// }
 
 // Add search function
 // Add a searchTerm property to your component

@@ -69,6 +69,22 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'chart-of-accounts',
+        loadComponent: () => import('./views/chart-of-accounts/chart-of-accounts.component')
+          .then(c => c.ChartOfAccountsComponent),
+        data: {
+          title: 'chart-of-accounts'
+        }
+      },
+      {
+        path: 'voucher-entry',
+        loadComponent: () => import('./views/voucher-entry/voucher-entry.component')
+          .then(c => c.VoucherEntryComponent),
+        data: {
+          title: 'voucher-entry'
+        }
+      },
+      {
         path: 'product',
         loadComponent: () => import('./views/add-product/add-product.component')
           .then(m => m.AddProductComponent)

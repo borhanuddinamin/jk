@@ -1,0 +1,257 @@
+<div class="voucher-management">
+  <div class="header">
+    <h2>Voucher Management</h2>
+    <div class="header-actions">
+      <button class="btn-add" (click)="addVoucher()">
+        <i class="fas fa-plus"></i> New Voucher
+      </button>
+      <button class="btn-secondary" routerLink="/chart-of-accounts">
+        <i class="fas fa-arrow-left"></i> Back to Chart of Accounts
+      </button>
+    </div>
+  </div>
+
+  <!-- Voucher Form -->
+  <div class="form-container" *ngIf="showForm">
+    <form [formGroup]="voucherForm" (ngSubmit)="saveVoucher()">
+      <!-- Voucher Header -->
+      <div class="form-grid three-column">
+        <div class="form-group">
+          <label for="voucherType">Voucher Type <span class="required">*</span></label>
+          <select id="voucherType" formControlName="voucherType" (change)="onVoucherTypeChange($event)" required>
+            <option value="4">Payment</option>
+            <option value="3">Receipt</option>
+            <option value="5">Journal</option>
+            <option value="6">Contra</option>
+          </select>
+          <div class="error-message" *ngIf="voucherForm.get('voucherType')?.invalid && voucherForm.get('voucherType')?.touched">
+            Voucher type is required
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="voucherNumber">Voucher Number</label>
+          <input type="text" id="voucherNumber" formControlName="voucherNumber" readonly>
+          <small class="form-text text-muted" *ngIf="!isLoadingVoucherNumber">Auto-generated</small>
+          <small class="form-text text-muted loading-text" *ngIf="isLoadingVoucherNumber">
+            <span class="spinner-sm"></span> Generating...
+          </small>
+        </div>
+        
+        <div class="form-group">
+          <label for="voucherDate">Date <span class="required">*</span></label>
+          <input type="date" id="voucherDate" formControlName="voucherDate" required>
+          <div class="error-message" *ngIf="voucherForm.get('voucherDate')?.invalid && voucherForm.get('voucherDate')?.touched">
+            Date is required
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction Details Section -->
+      <div class="section-header">
+        <h3>Transaction Details</h3>
+      </div>
+      
+      <div class="form-grid four-column">
+        <!-- Head Type Dropdown -->
+        <div class="form-group">
+          <label for="headType">Head Type <span class="required">*</span></label>
+          <select id="headType" formControlName="headType" (change)="onheadTypeChange($event)" required>
+            <option value="">Select Type</option>
+            <option *ngFor="let type of accountTypes" [value]="type.id">{{ type.name }}</option>
+          </select>
+          <div class="error-message" *ngIf="voucherForm.get('headType')?.invalid && voucherForm.get('headType')?.touched">
+            Head type is required
+          </div>
+        </div>
+        
+        <!-- Account Head Searchable Dropdown -->
+        <div class="form-group">
+          <label for="debitAccount">Account Head <span class="required">*</span></label>
+          <mat-form-field class="full-width">
+            <input type="text"
+                   placeholder="Search account head..."
+                   matInput
+                   [formControl]="debitAccountControl"
+                   [matAutocomplete]="accountAuto"
+                   (input)="onSearchInputChange($event)">
+            <mat-autocomplete #accountAuto="matAutocomplete" 
+                            [displayWith]="displayAccountFn"
+                            (optionSelected)="onAccountSelected($event)">
+              <mat-option *ngIf="isSearchingAccount" class="loading-option">
+                <span class="spinner-sm"></span> Searching...
+              </mat-option>
+              <ng-container *ngIf="!isSearchingAccount">
+                <mat-option *ngFor="let account of filteredDebitAccounts" [value]="account">
+                  <div class="account-info">
+                    <span class="account-code">{{account.accountCode}} - {{account.accountName}}</span>
+                  </div>
+                </mat-option>
+              </ng-container>
+            </mat-autocomplete>
+          </mat-form-field>
+          <div class="error-message" *ngIf="voucherForm.get('debitAccount')?.invalid && voucherForm.get('debitAccount')?.touched">
+            Account head is required
+          </div>
+        </div>
+        
+        <!-- Debit Amount Field -->
+        <div class="form-group numeric-input">
+          <label for="debitAmount">Debit Amount</label>
+          <input type="number" id="debitAmount" formControlName="debitAmount" min="0.01" step="0.01">
+        </div>
+
+        <!-- Credit Amount Field -->
+        <div class="form-group numeric-input">
+          <label for="creditAmount">Credit Amount</label>
+          <input type="number" id="creditAmount" formControlName="creditamount" min="0.01" step="0.01">
+        </div>
+      </div>
+
+      <div class="form-grid one-column">
+        <div class="form-group">
+          <label for="narration">Narration</label>
+          <textarea id="narration" formControlName="narration" rows="2"></textarea>
+        </div>
+      </div>
+      
+      <div class="form-grid two-column">
+        <div class="form-group">
+          <label for="supportingDocument">Supporting Document</label>
+          <input type="file" id="supportingDocument" (change)="onFileSelected($event)">
+          <small class="form-text text-muted">Upload invoice, bill or receipt (PDF, JPG, PNG)</small>
+        </div>
+        
+        <div class="form-group" *ngIf="selectedFile">
+          <label>Selected File</label>
+          <div class="selected-file">
+            <span>{{ selectedFile.name }}</span>
+            <button type="button" class="btn-link" (click)="removeFile()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="cancelForm()">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="voucherForm.invalid || isLoading">
+          <span *ngIf="isLoading" class="spinner-sm"></span>
+          <i *ngIf="!isLoading" class="fas fa-save"></i> {{ isEditing ? 'Update' : 'Save' }} Voucher
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Voucher List with Material Table -->
+  <div class="voucher-list" *ngIf="!showForm">
+    <div class="search-container">
+      <div class="search-input">
+        <i class="fas fa-search"></i>
+        <input 
+          type="text" 
+          placeholder="Search Vouchers..." 
+          (keyup)="applyFilter($event)"
+        >
+      </div>
+    </div>
+    
+    <div class="mat-table-container">
+      <!-- Loading Indicator -->
+      <div *ngIf="isLoading" class="loading-row">
+        <span class="spinner"></span> Loading vouchers...
+      </div>
+      
+      <!-- Material Table -->
+      <table mat-table [dataSource]="dataSource" class="mat-elevation-z0" *ngIf="!isLoading">
+        <!-- Serial Number Column -->
+        <ng-container matColumnDef="sl">
+          <th mat-header-cell *matHeaderCellDef>SL</th>
+          <td mat-cell *matCellDef="let i = index">{{(pageNumber - 1) * pageSize + i + 1}}</td>
+        </ng-container>
+        
+        <!-- Voucher Number Column -->
+        <ng-container matColumnDef="voucherNumber">
+          <th mat-header-cell *matHeaderCellDef>Voucher No.</th>
+          <td mat-cell *matCellDef="let voucher">{{voucher.voucherNumber}}</td>
+        </ng-container>
+        
+        <!-- Voucher Type Column -->
+        <ng-container matColumnDef="voucherType">
+          <th mat-header-cell *matHeaderCellDef>Type</th>
+          <td mat-cell *matCellDef="let voucher">{{voucher.voucherType}}</td>
+        </ng-container>
+        
+        <!-- Voucher Date Column -->
+        <ng-container matColumnDef="voucherDate">
+          <th mat-header-cell *matHeaderCellDef>Date</th>
+          <td mat-cell *matCellDef="let voucher">{{voucher.voucherDate | date:'dd/MM/yyyy'}}</td>
+        </ng-container>
+        
+        <!-- Account Name Column -->
+        <ng-container matColumnDef="accountName">
+          <th mat-header-cell *matHeaderCellDef>Account</th>
+          <td mat-cell *matCellDef="let voucher">{{voucher.accountName}}</td>
+        </ng-container>
+        
+        <!-- Debit Amount Column -->
+        <ng-container matColumnDef="debitAmount">
+          <th mat-header-cell *matHeaderCellDef>Debit</th>
+          <td mat-cell *matCellDef="let voucher" class="currency-cell">৳{{voucher.debitAmount}}</td>
+        </ng-container>
+        
+        <!-- Credit Amount Column -->
+        <ng-container matColumnDef="creditAmount">
+          <th mat-header-cell *matHeaderCellDef>Credit</th>
+          <td mat-cell *matCellDef="let voucher" class="currency-cell">৳{{voucher.creditAmount}}</td>
+        </ng-container>
+        
+        <!-- Narration Column -->
+        <ng-container matColumnDef="narration">
+          <th mat-header-cell *matHeaderCellDef>Narration</th>
+          <td mat-cell *matCellDef="let voucher" class="narration-cell">{{voucher.narration}}</td>
+        </ng-container>
+        
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let voucher" class="actions-cell">
+            <div class="action-buttons">
+              <button class="edit-btn" (click)="editVoucher(voucher)">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="delete-btn" (click)="deleteVoucher(voucher.id)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+        
+        <!-- Header and Row Definitions -->
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        
+        <!-- No Data Row -->
+        <tr class="mat-row" *matNoDataRow>
+          <td class="no-data-row" [attr.colspan]="displayedColumns.length">
+            No vouchers found
+          </td>
+        </tr>
+      </table>
+      
+      <!-- Material Paginator -->
+      <mat-paginator 
+        [length]="totalItems"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        [pageIndex]="pageNumber - 1"
+        (page)="handlePageEvent($event)"
+        showFirstLastButtons
+        aria-label="Select page of vouchers">
+      </mat-paginator>
+    </div>
+  </div>
+</div>
