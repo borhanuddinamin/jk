@@ -16,7 +16,7 @@ export const navItems: INavData[] = [
         iconComponent: { name: 'cil-settings' },
         children: [
           {
-            name: 'Add Associate',
+            name: 'Add Sales Associate',
             url: '/associate',
             icon: 'nav-icon-bullet'
           },
