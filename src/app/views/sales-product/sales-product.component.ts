@@ -1,7 +1,8 @@
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
+// Remove these imports
 import { ProgressComponent, ProgressBarComponent } from '@coreui/angular';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
@@ -22,7 +23,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 
 interface Product {
   id: number;
-  name: string;
+  nameEnglish: string;
+  category?: {
+    name: string;
+  };
+  salePrice: number;
+  costPrice: number;
+  productDetails?: Array<{
+    code: string;
+  }>;
+  installmentAmount?: number;
   price: number;
 }
 
@@ -40,6 +50,9 @@ interface Customer {
   phone: string;
   address: string;
   nidNumber: string;
+  associateType?: number;
+  primaryNumber?: string;
+  vendorName?: string;
   attachments: File[];
 }
 
@@ -94,8 +107,9 @@ interface InstallmentItem {
     FormsModule, 
     ReactiveFormsModule, 
     NgSelectModule, 
-    ProgressComponent, 
-    ProgressBarComponent,
+    // Remove these two lines
+    // ProgressComponent, 
+    // ProgressBarComponent,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
@@ -106,7 +120,7 @@ interface InstallmentItem {
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
-export class SalesProductComponent implements OnInit {
+export class SalesProductComponent implements OnInit, AfterViewInit {
   // Add this property to control form visibility
   showForm: boolean = true;
   private toastr = inject(ToastrService);
@@ -165,7 +179,14 @@ export class SalesProductComponent implements OnInit {
   
   // Associate search properties
   associateSearchControl = new FormControl();
+  customerSearchControl = new FormControl();
+  
+  // Product search properties
+  productSearchControl = new FormControl();
+  isSearchingProduct = false;
+
   isSearchingAssociate = false;
+  isSearchingCustomer = false;
   selectedAssociate: Associate | null = null;
 
   constructor(private fb: FormBuilder, private http: HttpClient) {
@@ -173,6 +194,7 @@ export class SalesProductComponent implements OnInit {
       products: [[], [Validators.required, Validators.minLength(1)]],
       salesPrice: [{ value: 0, disabled: true }],
       associate: [null, Validators.required],
+      customer: [null, Validators.required],
       downPayment: [0, [Validators.required, Validators.min(0)]],
       downPaymentCommission: [0, [Validators.required, Validators.min(0)]],
       salesType: ['Cash', Validators.required],
@@ -209,11 +231,11 @@ export class SalesProductComponent implements OnInit {
 
   ngOnInit() {
     // Mock data - replace with actual API calls
-    this.products = [
-      { id: 1, name: 'Product 1', price: 1000 },
-      { id: 2, name: 'Product 2', price: 2000 },
-      { id: 3, name: 'Product 3', price: 3000 }
-    ];
+    // this.products = [
+    //   { id: 1, name: 'Product 1', price: 1000 },
+    //   { id: 2, name: 'Product 2', price: 2000 },
+    //   { id: 3, name: 'Product 3', price: 3000 }
+    // ];
 
     this.associates = [
       { id: 1, name: 'Associate 1' },
@@ -223,13 +245,26 @@ export class SalesProductComponent implements OnInit {
 
     this.filteredProducts = [...this.products];
     // this.filteredAssociates = [...this.associates];
-    this.filteredCustomers = [...this.customers];
+    // this.filteredCustomers = [...this.customers];
     this.calculateTotals();
-    
-    // Setup associate search
-   
   }
 
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+    this.loadSales();
+  }
+
+  // Customer selection methods
+  onCustomerSelected(event: MatAutocompleteSelectedEvent) {
+    const customer = event.option.value;
+    this.selectedCustomer = customer;
+    this.salesForm.patchValue({
+      customer: customer.id
+    });
+  }
+
+  // Associate search methods
   setupAssociateSearch() {
     this.associateSearchControl.valueChanges
       .pipe(
@@ -238,7 +273,7 @@ export class SalesProductComponent implements OnInit {
         switchMap(value => {
           if (typeof value === 'string' && value.trim()) {
             this.isSearchingAssociate = true;
-            return this.searchAssociates(value.trim());
+            return this.searchAssociates(value.trim(), 2);
           } else {
             return of([]);
           }
@@ -249,20 +284,14 @@ export class SalesProductComponent implements OnInit {
         })
       )
       .subscribe(associates => {
-        this.filteredAssociates =[];
+        this.filteredAssociates = [];
         this.filteredAssociates = associates;
         this.isSearchingAssociate = false;
       });
   }
 
-  searchAssociates(searchTerm: string) {
-    // Default associate type is 2
-    return this.http.get<Associate[]>(`${environment.apiUrl}/Associate/GetAssociate`, {
-      params: {
-        str: searchTerm,
-        associate: '2'
-      }
-    }).pipe(
+  searchAssociates(searchTerm: string, Type: any) {
+    return this.http.get<Associate[]>(`${environment.apiUrl}/Associate/GetAssociate?str=${searchTerm}&associate=${Type}`).pipe(
       catchError(error => {
         console.error('Error searching associates:', error);
         return of([]);
@@ -274,13 +303,44 @@ export class SalesProductComponent implements OnInit {
     return associate ? associate.name : '';
   }
 
-  onAssociateSearchChange(event: Event) {
-    // const value = (event.target as HTMLInputElement).value;
-    // if (!value || value.trim() === '') {
-    //   this.filteredAssociates = [];
-    // }
+  onAssociateSearchChange() {
+    this.setupAssociateSearch();
+  }
 
-     this.setupAssociateSearch();
+  onCustomerSearchChange() {
+    this.customerSearchControl.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(value => {
+          if (typeof value === 'string' && value.trim()) {
+            this.isSearchingCustomer = true;
+            return this.searchAssociates(value.trim(), 3);
+          } else {
+            return of([]);
+          }
+        }),
+        catchError(() => {
+          this.isSearchingCustomer = false;
+          return of([]);
+        })
+      )
+      .subscribe(associates => {
+        this.filteredCustomers = [];
+        // Convert Associate objects to Customer objects
+        this.filteredCustomers = associates.map(associate => ({
+          id: associate.id,
+          name: associate.name,
+          phone: associate.primaryNumber || '',
+          address: '',
+          nidNumber: '',
+          associateType: associate.associateType,
+          primaryNumber: associate.primaryNumber,
+          vendorName: associate.vendorName,
+          attachments: []
+        }));
+        this.isSearchingCustomer = false;
+      });
   }
 
   onAssociateSelected(event: MatAutocompleteSelectedEvent) {
@@ -292,13 +352,21 @@ export class SalesProductComponent implements OnInit {
     // Recalculate associate shares if needed
     this.calculateAssociateShares();
   }
-  
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
-    this.loadSales();
+
+  calculateAssociateShares() {
+    // This will trigger profit distribution calculation
+    this.calculateProfitDistribution();
   }
   
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('accessToken');
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
+  }
+
+
+  // Sales data methods
   loadSales(page: number = 1, pageSize: number = 10, searchTerm: string = '') {
     this.isLoading = true;
     
@@ -362,13 +430,13 @@ export class SalesProductComponent implements OnInit {
       this.isLoading = false;
     }, 500);
   }
-  
+
   handlePageEvent(event: PageEvent) {
     this.pageSize = event.pageSize;
     this.pageNumber = event.pageIndex + 1;
     this.loadSales(this.pageNumber, this.pageSize, this.searchTerm);
   }
-  
+
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.searchTerm = filterValue.trim().toLowerCase();
@@ -378,32 +446,8 @@ export class SalesProductComponent implements OnInit {
       this.dataSource.paginator.firstPage();
     }
   }
-  
-  private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('accessToken');
-    return new HttpHeaders({
-      Authorization: `Bearer ${token}`
-    });
-  }
 
-  viewSale(sale: any) {
-    console.log('View sale', sale);
-    // Implement view functionality
-  }
-  
-  editSale(sale: any) {
-    console.log('Edit sale', sale);
-    this.showForm = true;
-    // Implement edit functionality
-  }
-  
-  deleteSale(id: number) {
-    if (confirm('Are you sure you want to delete this sale?')) {
-      console.log('Delete sale', id);
-      // Implement delete functionality
-    }
-  }
-  
+  // Product handling methods
   onProductSelect(selectedProducts: Product[]) {
     if (selectedProducts && selectedProducts.length > 0) {
       this.totalPrice = selectedProducts.reduce((sum, product) => sum + product.price, 0);
@@ -419,249 +463,148 @@ export class SalesProductComponent implements OnInit {
     this.calculateInstallmentAmount();
   }
 
-  onProductSearch(term: string) {
-    this.filteredProducts = this.products.filter(product =>
-      product.name.toLowerCase().includes(term.toLowerCase())
-    );
+  // Display function for product autocomplete
+  displayProductFn(product: any): string {
+    return product ? product.nameEnglish : '';
   }
 
-  // onAssociateSearch(term: string) {
-  //   this.filteredAssociates = this.associates.filter(associate =>
-  //     associate.name.toLowerCase().includes(term.toLowerCase())
-  //   );
-  // }
-
-  calculateInstallmentAmount() {
-    const formValues = this.salesForm.getRawValue();
-    if (formValues.salesType === 'Installment' && this.totalPrice > 0) {
-      const remainingAmount = this.totalPrice - formValues.downPayment - formValues.discount;
-      const installmentAmount = remainingAmount / formValues.installmentSize;
-      this.salesForm.patchValue({
-        installmentAmount: Math.round(installmentAmount * 100) / 100
-      }, { emitEvent: false });
-      
-      // Always regenerate the installment plan after recalculating the amount
-      this.generateInstallmentPlan();
-    }
-  }
-
-  onSubmit() {
-    if (this.salesForm.valid) {
-      console.log(this.salesForm.getRawValue());
-      // Handle form submission
-    }
-  }
-
-  openCustomerModal() {
-    this.showCustomerModal = true;
-    this.customerForm.reset();
-    this.selectedFiles = [];
-  }
-
-  closeCustomerModal() {
-    this.showCustomerModal = false;
-    this.customerForm.reset();
-    this.selectedFiles = [];
-  }
-
-  onFileSelect(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files?.length) {
-      const fileList = input.files;
-      const newFiles = Array.from(fileList).filter(file => file instanceof File) as File[];
-      this.selectedFiles = [...this.selectedFiles, ...newFiles];
-      this.customerForm.patchValue({
-        attachments: this.selectedFiles
+  onProductSearchChange() {
+    this.productSearchControl.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(value => {
+          if (typeof value === 'string' && value.trim()) {
+            this.isSearchingProduct = true;
+            return this.searchProducts(value.trim());
+          } else {
+            return of([]);
+          }
+        }),
+        catchError(() => {
+          this.isSearchingProduct = false;
+          return of([]);
+        })
+      )
+      .subscribe(response => {
+        this.filteredProducts = response.items || [];
+        this.isSearchingProduct = false;
       });
-    }
   }
 
-  removeFile(index: number) {
-    this.selectedFiles.splice(index, 1);
-    this.customerForm.patchValue({
-      attachments: this.selectedFiles
-    });
-  }
-
-  triggerFileInput() {
-    document.getElementById('fileInput')?.click();
-  }
-
-  onCustomerSubmit() {
-    if (this.customerForm.valid) {
-      this.isSubmitting = true;
-      
-      try {
-        const newCustomer: Customer = {
-          ...this.customerForm.value,
-          id: this.customers.length + 1,
-          attachments: this.selectedFiles
-        };
-        
-        this.customers.push(newCustomer);
-        this.selectedCustomer = newCustomer;
-        this.closeCustomerModal();
-        
-        // Reset form and selected files
-        this.customerForm.reset();
-        this.selectedFiles = [];
-      } catch (error) {
-        console.error('Error submitting customer:', error);
-      } finally {
-        this.isSubmitting = false;
-      }
-    }
-  }
-
-  openCustomerSearchModal() {
-    this.showCustomerSearchModal = true;
-    this.searchTerm = '';
-    this.filteredCustomers = [...this.customers];
-  }
-
-  closeCustomerSearchModal() {
-    this.showCustomerSearchModal = false;
-  }
-
-  onCustomerSearch(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.searchTerm = input.value;
-    this.filteredCustomers = this.customers.filter(customer =>
-      customer.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-      customer.phone.includes(this.searchTerm)
+  searchProducts(searchTerm: string) {
+    return this.http.get<any>(`${environment.apiUrl}/Product/GetProductList?searchTerm=${searchTerm}`).pipe(
+      catchError(error => {
+        console.error('Error searching products:', error);
+        return of({ items: [] });
+      })
     );
   }
 
-  selectCustomer(customer: Customer) {
-    this.selectedCustomer = customer;
-    this.closeCustomerSearchModal();
-  }
-
-  clearCustomer() {
-    this.selectedCustomer = null;
-  }
-
-  clearSearch() {
-    this.searchTerm = '';
-    this.filteredCustomers = [];
-  }
-
-  getFileIcon(file: File): string {
-    const type = file.type.toLowerCase();
+  onProductSelected(event: MatAutocompleteSelectedEvent) {
+    const product = event.option.value;
     
-    if (type.includes('pdf')) return 'fas fa-file-pdf';
-    if (type.includes('image')) return 'fas fa-file-image';
-    if (type.includes('word') || type.includes('document')) return 'fas fa-file-word';
-    if (type.includes('excel') || type.includes('sheet')) return 'fas fa-file-excel';
-    
-    return 'fas fa-file';
-  }
-
-  formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-    
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }
-
-  onCustomerSelect(customer: Customer | null) {
-    this.selectedCustomer = customer;
-    if (customer) {
-      console.log('Selected customer:', customer);
-      // Additional logic for when a customer is selected
-    }
-  }
-
-  getAssociateName(id: number): string {
-    if (this.selectedAssociate && this.selectedAssociate.id === id) {
-      return this.selectedAssociate.name;
-    }
-    const associate = this.associates.find(a => a.id === id);
-    return associate ? associate.name : 'Not selected';
-  }
-
-  calculateAssociateShares() {
-    const downPayment = this.totals.downPayment || 0;
-    
-    if (downPayment > 0) {
-      const totalShares = 5;
-      const salesShare = (downPayment * 2) / totalShares;
-      const otherShare = downPayment / totalShares;
-      
-      const calculatedTotal = salesShare + (otherShare * 3);
-      const roundingDifference = downPayment - calculatedTotal;
-      
-      this.associateShares = {
-        sales: salesShare + roundingDifference,
-        executive: otherShare,
-        finance: otherShare,
-        director: otherShare
-      };
-    } else {
-      this.associateShares = {
-        sales: 0,
-        executive: 0,
-        finance: 0,
-        director: 0
-      };
-    }
-  }
-
-  addProduct(product: any) {
-    const existingProduct = this.selectedProducts.find(p => p.id === product.id);
-    
-    if (existingProduct) {
-      existingProduct.quantity += 1;
-    } else {
+    // Check if product is already selected
+    if (!this.selectedProducts.some(p => p.id === product.id)) {
+      // Add product to selected products
       this.selectedProducts.push({
         id: product.id,
-        name: product.name,
-        price: product.price,
-        quantity: 1,
-        salesPrice: product.price,
+        name: product.nameEnglish,
+        category: product.category?.name,
+        executiveAssociate: product.executiveAssociate,
+        price: product.salePrice,
+        costPrice: product.costPrice,
+        salesPrice: product.salePrice,
+        downPayment: product.minimumDownPayment,
+        downPaymentCommission: 0,
+        installmentAmount: product.installmentPrice - product.minimumDownPayment,
+        profit: product.salePrice - product.costPrice,
+        productDetails: product.productDetails,
+        selectedProductCode: product.productDetails && product.productDetails.length > 0 ? 
+                    product.productDetails[0].code : '',
+        quantity: 1
+      });
+      
+      // Update form values
+      this.salesForm.patchValue({
+        products: this.selectedProducts
+      });
+      
+      // Clear the search input
+      this.productSearchControl.setValue('');
+      
+      // Calculate totals and profit distribution
+      this.calculateTotals();
+      this.calculateProfitDistribution();
+    }
+  }
+
+  // Method to get executive associate name for a product
+  getExecutiveAssociateName(product: any): string {
+    return product?.executiveAssociate?.name || 'Not assigned';
+  }
+
+  // Method to remove a product from selection
+  removeProduct(productId: any) {
+    this.selectedProducts = this.selectedProducts.filter(p => parseInt(p.id) !==  parseInt(productId));
+    this.salesForm.patchValue({
+      products: this.selectedProducts
+    });
+    this.calculateTotals();
+    this.calculateProfitDistribution();
+  }
+
+  // Calculation methods
+  calculateTotals() {
+    if (!this.selectedProducts || this.selectedProducts.length === 0) {
+      this.totals = {
+        salesPrice: 0,
         downPayment: 0,
         downPaymentCommission: 0,
         discount: 0
-      });
+      };
+      return;
     }
+
+    this.totals.salesPrice = this.selectedProducts.reduce((sum, product) => sum +( product.salesPrice??0), 0);
+    this.totals.downPayment = this.selectedProducts.reduce((sum, product) => sum +(  product.downPayment??0), 0);
     
-    this.calculateTotals();
-  }
-  
-  removeProduct(index: number) {
-    this.selectedProducts.splice(index, 1);
-    this.calculateTotals();
-  }
-  
-  updateProductField(product: SelectedProduct, field: string, event: any) {
-    const value = parseFloat(event.target.value) || 0;
-    product[field] = value;
-    this.calculateTotals();
+    // Update form values
+    this.salesForm.patchValue({
+      salesPrice: this.totals.salesPrice,
+      downPayment: this.totals.downPayment
+    });
     
-    if (field === 'downPayment') {
-      this.calculateAssociateShares();
-    }
+    this.calculateInstallmentAmount();
   }
-  
-  calculateTotals() {
-    this.totals = {
-      salesPrice: this.selectedProducts.reduce((sum, product) => sum + (product.salesPrice || 0), 0),
-      downPayment: this.selectedProducts.reduce((sum, product) => sum + (product.downPayment || 0), 0),
-      downPaymentCommission: this.selectedProducts.reduce((sum, product) => sum + (product.downPaymentCommission || 0), 0),
-      discount: this.selectedProducts.reduce((sum, product) => sum + (product.discount || 0), 0)
+
+  calculateProfitDistribution() {
+    // Calculate total profit
+    const totalProfit = this.selectedProducts.reduce((sum, product) => sum + (product?.salesPrice??0 - product['costPrice']), 0);
+    
+    // Apply discount (not exceeding total profit)
+    const discount = Math.min(this.salesForm.get('discount')?.value || 0, totalProfit);
+    
+    // Calculate distributable profit
+    const distributableProfit = totalProfit - discount;
+    
+    // Calculate commission for sales associate
+    const downPaymentCommission = Math.min(
+      (this.salesForm.get('downPaymentCommission')?.value || 0) / 100 * this.totals.downPayment,
+      distributableProfit
+    );
+    
+    // Calculate remaining profit for distribution
+    const remainingProfit = distributableProfit - downPaymentCommission;
+    
+    // Distribute remaining profit according to ratio 2:1:1:1
+    const totalShares = 5; // 2+1+1+1
+    this.associateShares = {
+      sales: downPaymentCommission + (remainingProfit * 2 / totalShares),
+      executive: remainingProfit * 1 / totalShares,
+      finance: remainingProfit * 1 / totalShares,
+      director: remainingProfit * 1 / totalShares
     };
-  }
-  
-  updateTotalField(field: string, event: any) {
-    const value = parseFloat(event.target.value) || 0;
-    this.totals[field] = value;
-    
-    if (field === 'downPayment') {
-      this.calculateAssociateShares();
-    }
   }
 
   calculateCommissionDistribution() {
@@ -678,6 +621,29 @@ export class SalesProductComponent implements OnInit {
       finance: Math.round((totalCommission * 1/5) * 100) / 100, // 20%
       director: Math.round((totalCommission * 1/5) * 100) / 100 // 20%
     };
+  }
+
+  calculateInstallmentAmount() {
+    const salesType = this.salesForm.get('salesType')?.value;
+    if (salesType !== 'Installment') {
+      return;
+    }
+    
+    const totalAmount = this.totals.salesPrice;
+    const downPayment = this.salesForm.get('downPayment')?.value || 0;
+    const installmentSize = this.salesForm.get('installmentSize')?.value || 1;
+    
+    if (installmentSize > 0) {
+      const installmentAmount = (totalAmount - downPayment) / installmentSize;
+      this.salesForm.patchValue({
+        installmentAmount: installmentAmount
+      });
+      
+      // Update installment plan if dates are set
+      if (this.salesForm.get('installmentDate')?.value) {
+        this.generateInstallmentPlan();
+      }
+    }
   }
 
   generateInstallmentPlan() {
@@ -720,12 +686,26 @@ export class SalesProductComponent implements OnInit {
     return this.installmentPlan.reduce((total, item) => total + item.amount, 0);
   }
 
+  // File handling methods
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const fileList = Array.from(input.files);
       this.selectedFiles = [...this.selectedFiles, ...fileList];
     }
+  }
+
+  // Customer management methods
+  openCustomerModal() {
+    this.showCustomerModal = true;
+    this.customerForm.reset();
+    this.selectedFiles = [];
+  }
+  
+  closeCustomerModal() {
+    this.showCustomerModal = false;
+    this.customerForm.reset();
+    this.selectedFiles = [];
   }
 
   saveCustomer() {
@@ -786,6 +766,81 @@ export class SalesProductComponent implements OnInit {
     }
   }
 
+  // Sale handling methods
+  onSubmit() {
+    if (this.salesForm.invalid) {
+      // Mark all fields as touched to trigger validation messages
+      Object.keys(this.salesForm.controls).forEach(key => {
+        const control = this.salesForm.get(key);
+        control?.markAsTouched();
+      });
+      this.toastr.error('Please fill all required fields correctly');
+      return;
+    }
+    
+    this.isSubmitting = true;
+    
+    const saleData = {
+      ...this.salesForm.value,
+      customer: this.selectedCustomer,
+      associate: this.selectedAssociate,
+      products: this.selectedProducts.map(product => ({
+        productId: product.id,
+        productCode: product['selectedProductCode'],
+        salesPrice: product.salesPrice,
+        downPayment: product.downPayment,
+        downPaymentCommission: product.downPaymentCommission
+      })),
+      totalAmount: this.totals.salesPrice,
+      date: new Date(),
+      status: 'Pending'
+    };
+    
+    // API call to save sale
+    const headers = this.getAuthHeaders();
+    
+    this.http.post(`${environment.apiUrl}/Sale/CreateSale`, saleData, { headers })
+      .pipe(
+        catchError(error => {
+          console.error('Error creating sale', error);
+          this.toastr.error('Failed to create sale. Please try again.', 'Error');
+          this.isSubmitting = false;
+          return of(null);
+        })
+      )
+      .subscribe({
+        next: (response: any) => {
+          if (response) {
+            // Show success message
+            this.toastr.success('Sale created successfully', 'Success');
+            
+            // Reset form and show data table
+            this.showForm = false;
+            this.loadSales(); // Reload sales data
+          }
+          this.isSubmitting = false;
+        }
+      });
+  }
+
+  viewSale(sale: any) {
+    console.log('View sale', sale);
+    // Implement view functionality
+  }
+  
+  editSale(sale: any) {
+    console.log('Edit sale', sale);
+    this.showForm = true;
+    // Implement edit functionality
+  }
+  
+  deleteSale(id: number) {
+    if (confirm('Are you sure you want to delete this sale?')) {
+      console.log('Delete sale', id);
+      // Implement delete functionality
+    }
+  }
+
   /**
    * Cancels the current form and shows the sales data table
    */
@@ -822,8 +877,15 @@ export class SalesProductComponent implements OnInit {
     this.salesForm.patchValue({
       salesType: 'Cash',
       downPayment: 0,
-      downPaymentCommission: 0,
-      discount: 0
+      downPaymentCommission:0,
+	  discount: 0
     });
   }
+
+
+// Add this method to your component class
+removeFile(index: number) {
+  this.selectedFiles.splice(index, 1);
+}
+
 }

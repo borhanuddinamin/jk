@@ -46,7 +46,7 @@
                      matInput
                      [formControl]="associateSearchControl"
                      [matAutocomplete]="associateAuto"
-                     (input)="onAssociateSearchChange($event)">
+                     (input)="onAssociateSearchChange()">
               <mat-autocomplete #associateAuto="matAutocomplete" 
                              [displayWith]="displayAssociateFn"
                              (optionSelected)="onAssociateSelected($event)">
@@ -54,10 +54,10 @@
                   <span class="spinner-sm"></span> Searching...
                 </mat-option>
                 <ng-container *ngIf="!isSearchingAssociate">
-                  <mat-option *ngFor="let associate of filteredAssociates" [value]="associate">
+                  <mat-option *ngFor="let associate of filteredAssociates" [value]="associate" class="green-bg-option">
                     <div class="associate-info">
                       <i class="fas fa-user-tie"></i>
-                      <span>{{associate.name}}</span>
+                      <span> {{associate.name}}</span>
                     </div>
                   </mat-option>
                 </ng-container>
@@ -81,7 +81,7 @@
 
 
           <!-- Customer Selection -->
-          <div class="form-group">
+          <!-- <div class="form-group">
             <label>Select Customer <span class="required">*</span></label>
             <ng-select
               [items]="customers"
@@ -91,7 +91,7 @@
               placeholder="Search for a customer"
               [(ngModel)]="selectedCustomer"
               [ngModelOptions]="{standalone: true}"
-              (change)="onCustomerSelect($event)">
+              (change)="onCustomerSelect()">
               <ng-template ng-option-tmp let-item="item">
                 <div class="customer-option">
                   <div class="customer-info">
@@ -102,8 +102,41 @@
                 </div>
               </ng-template>
             </ng-select>
-          </div>
+          </div> -->
          
+
+          <div class="form-group">
+            <label>Select Customer <span class="required">*</span></label>
+            <mat-form-field class="full-width">
+              <input type="text"
+                     placeholder="Search for Customer..."
+                     matInput
+                     [formControl]="customerSearchControl"
+                     [matAutocomplete]="customerAuto"
+                     (input)="onCustomerSearchChange()">
+              <mat-autocomplete #customerAuto="matAutocomplete" 
+                             [displayWith]="displayAssociateFn"
+                             (optionSelected)="onCustomerSelected($event)">
+                <mat-option *ngIf="isSearchingCustomer" class="loading-option">
+                  <span class="spinner-sm"></span> Searching...
+                </mat-option>
+                <ng-container *ngIf="!isSearchingCustomer">
+                  <mat-option *ngFor="let customer of filteredCustomers" [value]="customer" class="green-bg-option">
+                    <div class="associate-info">
+                      <i class="fas fa-user-tie"></i>
+                      <span> {{customer.name}}</span>
+                    </div>
+                  </mat-option>
+                </ng-container>
+              </mat-autocomplete>
+            </mat-form-field>
+            <div class="error-message" *ngIf="salesForm.get('customer')?.invalid && salesForm.get('customer')?.touched">
+              customer is required
+            </div>
+          </div>
+
+
+
 
                   <!-- Sales Type -->
                   <div class="form-group">
@@ -132,35 +165,31 @@
   <!-- Product Selection -->
   <div class="form-group product-selection">
     <label>Select Products <span class="required">*</span></label>
-    <ng-select 
-      [items]="products"
-      [multiple]="true"
-      [closeOnSelect]="false"
-      [searchable]="true"
-      [clearable]="true"
-      bindLabel="name"
-      placeholder=""
-      formControlName="products"
-      (change)="onProductSelect($event)"
-      [loading]="false"
-      groupBy="category">
-      <!-- Simple Option Template -->
-      <ng-template ng-option-tmp let-item="item" let-index="index">
-        <div class="product-option-simple">
-          {{item.name}} - {{item.price | currency:'৳ '}}
-        </div>
-      </ng-template>
-      
-      <!-- Simple Multi-Select Label Template -->
-      <ng-template ng-multi-label-tmp let-items="items" let-clear="clear">
-        <div class="selected-summary-simple">
-          <span>{{items.length}} products selected</span>
-          <button class="clear-all" (click)="clear($event)" *ngIf="items.length">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-      </ng-template>
-    </ng-select>
+    <mat-form-field class="full-width">
+      <input type="text"
+             placeholder="Search for products..."
+             matInput
+             [formControl]="productSearchControl"
+             [matAutocomplete]="productAuto"
+             (input)="onProductSearchChange()">
+      <mat-autocomplete #productAuto="matAutocomplete" 
+                     [displayWith]="displayProductFn"
+                     (optionSelected)="onProductSelected($event)">
+        <mat-option *ngIf="isSearchingProduct" class="loading-option">
+          <span class="spinner-sm"></span> Searching...
+        </mat-option>
+        <ng-container *ngIf="!isSearchingProduct">
+          <!-- Fix the product autocomplete section -->
+          <mat-option *ngFor="let product of filteredProducts" [value]="product" class="green-bg-option">
+            <div class="product-info">
+              <span class="product-name">{{product['nameEnglish']}}</span>
+              <span class="product-category">{{product['category']?.name}}</span>
+              <span class="product-price">৳ {{product['salePrice']}}</span>
+            </div>
+          </mat-option>
+        </ng-container>
+      </mat-autocomplete>
+    </mat-form-field>
   </div>
 
 
@@ -243,330 +272,232 @@
     </div>
   </div>
 
-  <div class="selected-products-container" *ngIf="salesForm.get('products')?.value?.length">
-    <div class="list-header">
-      <h4>Selected Products</h4>
-      <div class="columns-header">
-        <span>Product Name</span>
-        <span>Executive Associate</span>
-        <span>Product Code</span>
-        <span>DownPay Comm (%)</span>
-        <span>Down Payment</span>
-        <span>Sales Price</span>
-        <span>Installment Amount</span>
+  <!-- <div class="selected-products-container" *ngIf="selectedProducts.length > 0">
+      <div class="list-header">
+        <h4>Selected Products</h4>
+        <div class="columns-header">
+          <span>Product Name</span>
+          <span>Executive Associate</span>
+          <span>Product Code</span>
+          <span>DownPay Comm (%)</span>
+          <span>Down Payment</span>
+          <span>Sales Price</span>
+          <span>Installment Amount</span>
+          <span>Actions</span>
+        </div>
       </div>
-    </div>
-    <div class="selected-items-list">
-      <div class="selected-item" *ngFor="let product of salesForm.get('products')?.value">
-        <div class="item-info">
-          <!-- <div class="item-icon">
-            <i class="fas fa-box-open"></i>
-          </div> -->
-          <div class="item-details">
-            <span class="item-name">{{product.name}}</span>
-            <!-- <span class="item-id">Product ID: #{{product.id}}</span> -->
+      <div class="selected-items-list">
+        <div class="selected-item" *ngFor="let product of selectedProducts">
+     
+          <div class="item-name" data-label="Product Name">{{product.name}}</div>
+          <div class="item-executive" data-label="Executive Associate">
+            {{ product['executiveAssociate']?.name || 'Not assigned' }}
+          </div>
+          <div class="item-code" data-label="Product Code">
+            <select [(ngModel)]="product['selectedProductCode']" [ngModelOptions]="{standalone: true}">
+              <option *ngFor="let detail of product['productDetails']" [value]="detail.code">
+                {{detail.code}}
+              </option>
+            </select>
+          </div>
+          <div class="item-commission" data-label="DownPay Comm (%)">
+            <input type="number" [(ngModel)]="product.downPaymentCommission" 
+                   [ngModelOptions]="{standalone: true}" 
+                   (change)="calculateProfitDistribution()" 
+                   min="0" max="100" />
+          </div>
+          <div class="item-downpayment" data-label="Down Payment">
+            <input type="number" [(ngModel)]="product.downPayment" 
+                   [ngModelOptions]="{standalone: true}" 
+                   (change)="calculateTotals()" 
+                   [min]="0" />
+          </div>
+          <div class="item-salesprice" data-label="Sales Price">
+            <input type="number" [(ngModel)]="product.salesPrice" 
+                   [ngModelOptions]="{standalone: true}" 
+                   (change)="calculateTotals()" 
+                   [min]="product['costPrice']" />
+          </div>
+          <div class="item-installment" data-label="Installment Amount">
+            ৳ {{product['installmentAmount']}}
+          </div>
+          <div class="item-actions" data-label="Actions">
+            <button type="button" class="remove-btn" (click)="removeProduct(product.id)">
+              <i class="fas fa-times"></i>
+            </button>
           </div>
         </div>
-        <div class="item-associate" data-label="Executive Associate">
-          <i class="fas fa-user-tie"></i>
-          <span>{{ getAssociateName(salesForm.get('associate')?.value) }}</span>
-        </div>
-       
-                <div class="item-price" data-label="Product Code">{{product.id}}</div>
-                <div class="item-price" data-label="Product Code">
-                  <input type="text" [(ngModel)]="product.id" class="product-input" />
-                </div>
-        <div class="item-downpayment" data-label="Down Payment">৳ {{product.downPayment || 0}}</div>
-        <div class="item-salesprice" data-label="Sales Price">৳ {{product.salesPrice || product.price}}</div>
-        <div class="item-installment" data-label="Installment Amount">৳ {{product.installmentAmount || 0}}</div>
       </div>
-    </div>
+     
+      <div class="list-footer">
+        <div class="total-row">
+          <div class="total-label">Total</div>
+          <div class="total-value associate">-</div>
+          <div class="total-value code">-</div>
+          <div class="total-value commission">-</div>
+          <div class="total-value downpayment" data-label="Down Payment">৳ {{totals.downPayment}}</div>
+          <div class="total-value salesprice" data-label="Sales Price">৳ {{totals.salesPrice}}</div>
+          <div class="total-value installment" data-label="Installment Amount">৳ {{salesForm.get('installmentAmount')?.value || 0}}</div>
+          <div class="total-value actions">-</div>
+        </div>
+      </div>
+    </div> -->
+
+
+
+    
+
+
     <!-- Optional footer for totals -->
-    <div class="list-footer">
+    <!-- <div class="list-footer">
       <div class="total-row">
         <div class="total-label">Total</div>
-        <div class="total-value associate">-</div>
         <div class="total-value price" data-label="Product Code">-</div>
         <div class="total-value downpayment" data-label="Down Payment">৳ {{totals.downPayment}}</div>
         <div class="total-value salesprice" data-label="Sales Price">৳ {{totals.salesPrice}}</div>
         <div class="total-value installment" data-label="Installment Amount">৳ {{salesForm.get('installmentAmount')?.value || 0}}</div>
       </div>
+    </div> -->
+  <!-- </div>
+
+  <div class="sales-distribution-container" *ngIf="salesForm.get('downPayment')?.value > 0">
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5>Associate Payment Distribution</h5>
     </div>
-  </div>
-</div>
-  
-
-
-    <!-- Installment Section -->
-    <div class="form-section" *ngIf="salesForm.get('salesType')?.value === 'Installment'">
-      <div class="section-header">
-        <h3 class="section-title">Installment Details</h3>
-        <div class="section-badge">Payment Plan</div>
-      </div>
-      <div class="section-grid">
-        <!-- Installment Size -->
-        <div class="form-group">
-          <label>Installment Size <span class="required">*</span></label>
-          <div class="input-with-icon">
-            <i class="fas fa-layer-group"></i>
-            <input type="number" formControlName="installmentSize" min="1" (input)="generateInstallmentPlan()">
-          </div>
+    <div class="card-body">
+      <div class="distribution-grid">
+        <div class="distribution-item">
+          <div class="associate-label">Sales Associate</div>
+          <div class="associate-value">৳ {{associateShares.sales}}</div>
         </div>
-
-        <!-- Installment Date -->
-        <div class="form-group">
-          <label>First Installment Date <span class="required">*</span></label>
-          <div class="input-with-icon">
-            <i class="fas fa-calendar"></i>
-            <input type="date" formControlName="installmentDate" (change)="calculateInstallmentAmount(); generateInstallmentPlan()">
-          </div>
+        <div class="distribution-item">
+          <div class="associate-label">Executive Associate</div>
+          <div class="associate-value">৳ {{associateShares.executive}}</div>
         </div>
-
-        <!-- Installment Amount -->
-        <div class="form-group">
-          <label>Installment Amount (TK)</label>
-          <div class="input-with-icon">
-            <span class="currency-symbol">৳</span>
-            <input type="number" formControlName="installmentAmount" readonly>
-          </div>
+        <div class="distribution-item">
+          <div class="associate-label">Finance Associate</div>
+          <div class="associate-value">৳ {{associateShares.finance}}</div>
+        </div>
+        <div class="distribution-item">
+          <div class="associate-label">Director Associate</div>
+          <div class="associate-value">৳ {{associateShares.director}}</div>
         </div>
       </div>
-      
-      <!-- Installment Plan Preview -->
-      <div class="installment-plan-container" *ngIf="installmentPlan.length > 0">
-        <h4 class="plan-title">Installment Schedule</h4>
-        <div class="installment-plan-header">
-          <div class="installment-no">Installment No</div>
-          <div class="installment-date">Due Date</div>
-          <div class="installment-amount">Amount</div>
-        </div>
-        <div class="installment-plan-rows">
-          <div class="installment-row" *ngFor="let installment of installmentPlan">
-            <div class="installment-no">
-              <span class="no-badge">{{installment.number}}</span>
-            </div>
-            <div class="installment-date">{{installment.date | date:'mediumDate'}}</div>
-            <div class="installment-amount">৳ {{installment.amount}}</div>
-          </div>
-        </div>
-        <div class="installment-plan-footer">
-          <div class="total-label">Total Amount</div>
-          <div class="total-amount">৳ {{calculateTotalInstallmentAmount()}}</div>
-        </div>
-      </div>
-    </div>
-
-      <div class="form-actions">
-        <button type="button" class="cancel-btn" (click)="cancelForm()">
-          <i class="fas fa-times"></i>
-          <span>Cancel</span>
-        </button>
-        <button type="submit" class="submit-btn" [disabled]="!salesForm.valid">
-          <span class="btn-content">
-            <i class="fas fa-save"></i>
-            <span class="btn-text">Create Sale</span>
-          </span>
-          <span class="btn-shine"></span>
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-
-  <!-- <div class="modal-content">
-    <div class="modal-header">
-      <h3>Add New Customer</h3>
-      <button class="close-btn" (click)="closeCustomerModal()">&times;</button>
-    </div>
-    
-    <div class="modal-body">
-      <form [formGroup]="customerForm" (ngSubmit)="saveCustomer()">
-        <div class="form-grid two-column">
-          <div class="form-group">
-            <label>Customer Name <span class="required">*</span></label>
-            <input type="text" formControlName="name" placeholder="Enter customer name">
-            <div class="error-message" *ngIf="customerForm.get('name')?.invalid && customerForm.get('name')?.touched">
-              Customer name is required
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>Phone Number <span class="required">*</span></label>
-            <input type="text" formControlName="phone" placeholder="e.g. 01712345678">
-            <div class="error-message" *ngIf="customerForm.get('phone')?.invalid && customerForm.get('phone')?.touched">
-              Valid phone number is required (e.g. 01712345678)
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>NID Number <span class="required">*</span></label>
-            <input type="text" formControlName="nidNumber" placeholder="Enter NID number">
-            <div class="error-message" *ngIf="customerForm.get('nidNumber')?.invalid && customerForm.get('nidNumber')?.touched">
-              Valid NID number is required (10-17 digits)
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>Address <span class="required">*</span></label>
-            <textarea formControlName="address" placeholder="Enter customer address" rows="3"></textarea>
-            <div class="error-message" *ngIf="customerForm.get('address')?.invalid && customerForm.get('address')?.touched">
-              Address is required
-            </div>
-          </div>
-          
-          <div class="form-group full-width">
-            <label>Attachments</label>
-            <div class="file-upload-container">
-              <div class="file-upload-btn">
-                <input type="file" multiple (change)="onFileSelected($event)" #fileInput>
-                <button type="button" (click)="fileInput.click()">
-                  <i class="fas fa-upload"></i> Upload Files
-                </button>
-              </div>
-              <div class="selected-files" *ngIf="selectedFiles.length > 0">
-                <div class="file-item" *ngFor="let file of selectedFiles; let i = index">
-                  <span class="file-name">{{file.name}}</span>
-                  <button type="button" class="remove-file" (click)="removeFile(i)">
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="form-actions">
-          <button type="button" class="btn-secondary" (click)="showCustomerModal = false">
-            Cancel
-          </button>
-          <button type="submit" class="btn-primary" [disabled]="customerForm.invalid || isSubmitting">
-            <span *ngIf="isSubmitting" class="spinner-sm"></span>
-            <span *ngIf="!isSubmitting">Save Customer</span>
-          </button>
-        </div>
-      </form>
     </div>
   </div> -->
 
-<div class="modal-overlay" *ngIf="showCustomerModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Add New Customer</h3>
-      <button class="close-btn" (click)="showCustomerModal = false">&times;</button>
+  <!-- Selected Products -->
+  <div class="card" *ngIf="selectedProducts.length > 0">
+    <div class="card-header">
+      <h5>Selected Products</h5>
     </div>
-    
-    <div class="modal-body">
-      <form [formGroup]="customerForm" (ngSubmit)="saveCustomer()">
-        <div class="form-grid two-column">
-          <div class="form-group">
-            <label>Customer Name <span class="required">*</span></label>
-            <input type="text" formControlName="name" placeholder="Enter full name">
-            <div class="error-message" *ngIf="customerForm.get('name')?.invalid && customerForm.get('name')?.touched">
-              Customer name is required
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>Phone Number <span class="required">*</span></label>
-            <input type="tel" formControlName="phone" placeholder="e.g. 01712345678">
-            <div class="error-message" *ngIf="customerForm.get('phone')?.invalid && customerForm.get('phone')?.touched">
-              Valid phone number is required
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>NID Number <span class="required">*</span></label>
-            <input type="text" formControlName="nidNumber" placeholder="Enter NID number">
-            <div class="error-message" *ngIf="customerForm.get('nidNumber')?.invalid && customerForm.get('nidNumber')?.touched">
-              Valid NID number is required (10-17 digits)
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>contact Number</label>
-            <input type="tel" formControlName="contactphone" >
-            <!-- <div class="error-message" *ngIf="customerForm.get('email')?.invalid && customerForm.get('email')?.touched">
-              Please enter a valid email address
-            </div> -->
-          </div>
-          
-          <div class="form-group full-width">
-            <label>Address <span class="required">*</span></label>
-            <textarea formControlName="address" placeholder="Enter full address" rows="3"></textarea>
-            <div class="error-message" *ngIf="customerForm.get('address')?.invalid && customerForm.get('address')?.touched">
-              Address is required
-            </div>
-          </div>
-          
-          <div class="form-group full-width">
-            <label>Attachments</label>
-            <div class="file-upload-container">
-              <div class="file-upload-btn">
-                <input type="file" multiple (change)="onFileSelected($event)" #fileInput>
-                <button type="button" (click)="fileInput.click()">
-                  <i class="fas fa-upload"></i> Upload Documents
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover products-table">
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th>Executive Associate</th>
+              <th>Product Code  .....</th>
+              <th>Comm (%)</th>
+              <th>Down Payment</th>
+              <th>Sales Price</th>
+              <th>Inst. Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let product of selectedProducts">
+              <td>{{product.name}}</td>
+              <td>{{ product['executiveAssociate']?.name || 'Not assigned' }}</td>
+              <td>
+                <select class="form-select form-select-sm" 
+                        [(ngModel)]="product['selectedProductCode']" 
+                        [ngModelOptions]="{standalone: true}">
+                  <option *ngFor="let detail of product['productDetails']" [value]="detail.code">
+                    {{detail.code}}
+                  </option>
+                </select>
+              </td>
+              <td>
+                <input type="number" class="form-control form-control-sm" 
+                       [(ngModel)]="product.downPaymentCommission" 
+                       [ngModelOptions]="{standalone: true}" 
+                       (change)="calculateProfitDistribution()" 
+                       min="0" max="100" />
+              </td>
+              <td>
+                <input type="number" class="form-control form-control-sm" 
+                       [(ngModel)]="product.downPayment" 
+                       [ngModelOptions]="{standalone: true}" 
+                       (change)="calculateTotals()" 
+                       [min]="0" />
+              </td>
+              <td>
+                <input type="number" class="form-control form-control-sm" 
+                       [(ngModel)]="product.salesPrice" 
+                       [ngModelOptions]="{standalone: true}" 
+                       (change)="calculateTotals()" 
+                       [min]="product['costPrice']" />
+              </td>
+              <td class="text-end">৳ {{product['installmentAmount']}}</td>
+              <td class="text-center">
+                <button type="button" class="btn btn-danger btn-sm" (click)="removeProduct(product.id)">
+                  <i class="fas fa-times"></i>
                 </button>
-              </div>
-              <div class="selected-files" *ngIf="selectedFiles.length > 0">
-                <div class="file-item" *ngFor="let file of selectedFiles; let i = index">
-                  <span class="file-name">{{file.name}}</span>
-                  <button type="button" class="remove-file" (click)="removeFile(i)">
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="form-actions">
-          <button type="button" class="btn-secondary" (click)="showCustomerModal = false">
-            Cancel
-          </button>
-          <button type="submit" class="btn-primary" [disabled]="customerForm.invalid || isSubmitting">
-            <span *ngIf="isSubmitting" class="spinner-sm"></span>
-            <span *ngIf="!isSubmitting">Save Customer</span>
-          </button>
-        </div>
-      </form>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="table-dark">
+              <td colspan="4" class="text-end fw-bold">Total</td>
+              <td class="text-end fw-bold">৳ {{totals.downPayment}}</td>
+              <td class="text-end fw-bold">৳ {{totals.salesPrice}}</td>
+              <td class="text-end fw-bold">৳ {{salesForm.get('installmentAmount')?.value || 0}}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Customer Search Modal -->
-<!-- <div class="modal-overlay" *ngIf="showCustomerSearchModal">
-  <div class="modal-content customer-search-modal">
-    <div class="modal-header">
-      <h3>Search Customer</h3>
-      <button class="close-btn" (click)="closeCustomerSearchModal()">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-    <div class="modal-body">
-      <div class="search-box">
-        <input type="text" [(ngModel)]="searchTerm" 
-               (input)="onCustomerSearch($event)"
-               placeholder="Search by customer name...">
-        <i class="fas fa-search"></i>
+
+  <!-- Customer Search Modal -->
+  <!-- <div class="modal-overlay" *ngIf="showCustomerSearchModal">
+    <div class="modal-content customer-search-modal">
+      <div class="modal-header">
+        <h3>Search Customer</h3>
+        <button class="close-btn" (click)="closeCustomerSearchModal()">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
-      <div class="customer-list">
-        <div *ngFor="let customer of filteredCustomers" 
-             class="customer-item" 
-             (click)="selectCustomer(customer)">
-          <div class="customer-info">
-            <span class="name">{{ customer.name }}</span>
-            <span class="phone">{{ customer.phone }}</span>
+      <div class="modal-body">
+        <div class="search-box">
+          <input type="text" [(ngModel)]="searchTerm" 
+                 (input)="onCustomerSearch()"
+                 placeholder="Search by customer name...">
+          <i class="fas fa-search"></i>
+        </div>
+        <div class="customer-list">
+          <div *ngFor="let customer of filteredCustomers" 
+               class="customer-item" 
+               (click)="selectCustomer(customer)">
+            <div class="customer-info">
+              <span class="name">{{ customer.name }}</span>
+              <span class="phone">{{ customer.phone }}</span>
+            </div>
+            <span class="id">ID: {{ customer.id }}</span>
           </div>
-          <span class="id">ID: {{ customer.id }}</span>
-        </div>
-        <div *ngIf="filteredCustomers.length === 0" class="no-results">
-          No customers found
+          <div *ngIf="filteredCustomers.length === 0" class="no-results">
+            No customers found
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</div> -->
+  </div> -->
 
 <!-- Sales Data Table (only shown when showForm is false) -->
 <div class="data-table-container" *ngIf="!showForm">
@@ -688,7 +619,84 @@
     (page)="handlePageEvent($event)">
   </mat-paginator>
 </div>
+<!-- Remove this line -->
 <!-- </div> -->
 
 <!-- Customer Modal and other modals remain unchanged -->
 <!-- ... -->
+
+    <!-- Installment Section -->
+    <div class="form-section" *ngIf="salesForm.get('salesType')?.value === 'Installment'">
+      <div class="section-header">
+        <h3 class="section-title">Installment Details</h3>
+        <div class="section-badge">Payment Plan</div>
+      </div>
+      <div class="section-grid">
+        <!-- Installment Size -->
+        <div class="form-group">
+          <label>Installment Size <span class="required">*</span></label>
+          <div class="input-with-icon">
+            <i class="fas fa-layer-group"></i>
+            <input type="number" formControlName="installmentSize" min="1" (input)="generateInstallmentPlan()">
+          </div>
+        </div>
+
+        <!-- Installment Date -->
+        <div class="form-group">
+          <label>First Installment Date <span class="required">*</span></label>
+          <div class="input-with-icon">
+            <i class="fas fa-calendar"></i>
+            <input type="date" formControlName="installmentDate" (change)="calculateInstallmentAmount(); generateInstallmentPlan()">
+          </div>
+        </div>
+
+        <!-- Installment Amount -->
+        <div class="form-group">
+          <label>Installment Amount (TK)</label>
+          <div class="input-with-icon">
+            <span class="currency-symbol">৳</span>
+            <input type="number" formControlName="installmentAmount" readonly>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Installment Plan Preview -->
+      <div class="installment-plan-container" *ngIf="installmentPlan.length > 0">
+        <h4 class="plan-title">Installment Schedule</h4>
+        <div class="installment-plan-header">
+          <div class="installment-no">Installment No</div>
+          <div class="installment-date">Due Date</div>
+          <div class="installment-amount">Amount</div>
+        </div>
+        <div class="installment-plan-rows">
+          <div class="installment-row" *ngFor="let installment of installmentPlan">
+            <div class="installment-no">
+              <span class="no-badge">{{installment.number}}</span>
+            </div>
+            <div class="installment-date">{{installment.date | date:'mediumDate'}}</div>
+            <div class="installment-amount">৳ {{installment.amount}}</div>
+          </div>
+        </div>
+        <div class="installment-plan-footer">
+          <div class="total-label">Total Amount</div>
+          <div class="total-amount">৳ {{calculateTotalInstallmentAmount()}}</div>
+        </div>
+      </div>
+    </div>
+
+      <div class="form-actions">
+        <button type="button" class="cancel-btn">
+          <i class="fas fa-times"></i>
+          <span>Cancel</span>
+        </button>
+        <button type="submit" class="submit-btn" [disabled]="!salesForm.valid">
+          <span class="btn-content">
+            <i class="fas fa-save"></i>
+            <span class="btn-text">Create Sale</span>
+          </span>
+          <span class="btn-shine"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

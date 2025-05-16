@@ -108,23 +108,30 @@
           </select>
         </div>
 
-        <!-- Executive Associate dropdown -->
-        <!-- Fix the Executive Associate dropdown section -->
+        <!-- Executive Associate dropdown - Updated to match sales-product component -->
         <div class="form-group">
           <label>Executive Associate</label>
           <mat-form-field class="full-width">
             <input type="text"
-                   placeholder="Search executive associate..."
+                   placeholder="Search for an executive associate..."
                    matInput
                    [formControl]="executiveAssociateControl"
-                   [matAutocomplete]="auto">
-            <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayExecutiveAssociateFn">
-              <mat-option *ngFor="let supplier of filteredSuppliers" [value]="supplier">
-                {{supplier.name}}
+                   [matAutocomplete]="executiveAuto"
+                   (input)="onExecutiveAssociateSearchChange()">
+            <mat-autocomplete #executiveAuto="matAutocomplete" 
+                           [displayWith]="displayExecutiveAssociateFn"
+                           (optionSelected)="selectSupplier($event.option.value)">
+              <mat-option *ngIf="isSearchingExecutive" class="loading-option">
+                <span class="spinner-sm"></span> Searching...
               </mat-option>
-              <mat-option *ngIf="filteredSuppliers.length === 0" disabled>
-                No executive associates found
-              </mat-option>
+              <ng-container *ngIf="!isSearchingExecutive">
+                <mat-option *ngFor="let supplier of filteredSuppliers" [value]="supplier" class="green-bg-option">
+                  <div class="associate-info">
+                    <i class="fas fa-user-tie"></i>
+                    <span> {{supplier.name}}</span>
+                  </div>
+                </mat-option>
+              </ng-container>
             </mat-autocomplete>
           </mat-form-field>
         </div>

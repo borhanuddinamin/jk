@@ -92,8 +92,8 @@ interface IInstallmentPerson {
     RowComponent,
     ChartjsComponent,
     IconDirective,
-    WidgetsBrandComponent,
-    WidgetsDropdownComponent,
+    // WidgetsBrandComponent, // Remove this line
+    // WidgetsDropdownComponent, // Remove this line
     ButtonDirective,
     ButtonGroupComponent,
     FormCheckLabelDirective,

@@ -1084,3 +1084,15 @@
     }
   }
 }
+.green-bg-option {
+  background-color: #e8f5e9 !important; /* Light green background */
+}
+
+.green-bg-option:hover {
+  background-color: #c8e6c9 !important; /* Slightly darker green on hover */
+}
+
+/* When option is selected/active */
+.green-bg-option.mat-selected {
+  background-color: #a5d6a7 !important; /* Even darker green when selected */
+}

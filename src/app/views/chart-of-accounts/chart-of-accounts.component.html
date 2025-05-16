@@ -28,7 +28,9 @@
       <!-- Tree View -->
       <div class="accounts-tree">
         <ng-container *ngIf="accounts.length > 0; else noAccounts">
-          <ng-container *ngTemplateOutlet="accountsTreeTemplate; context: { $implicit: accounts, level: 0 }"></ng-container>
+          <div class="tree-view">
+            <ng-container *ngTemplateOutlet="accountsTreeTemplate; context: { $implicit: accounts, level: 0 }"></ng-container>
+          </div>
         </ng-container>
         
         <ng-template #noAccounts>
@@ -40,24 +42,25 @@
         
         <!-- Recursive Tree Template -->
         <ng-template #accountsTreeTemplate let-nodes let-level="level">
-          <div class="tree-level">
-            <div *ngFor="let node of nodes" class="tree-node" [class.selected]="selectedAccount?.accountCode === node.accountCode">
-              <div class="node-content" [style.padding-left]="getNodeIndentation(level)" (click)="selectAccount(node)">
+          <ul class="tree-level">
+            <li *ngFor="let node of nodes" class="tree-node" [class.selected]="selectedAccount?.accountCode === node.accountCode">
+              <div class="node-content" (click)="selectAccount(node)">
                 <button class="toggle-btn" *ngIf="node.children && node.children.length > 0" (click)="toggleNode(node); $event.stopPropagation()">
                   <i class="fas" [ngClass]="node.isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
                 </button>
+                <span *ngIf="!(node.children && node.children.length > 0)" class="toggle-placeholder"></span>
                 <i class="fas" [ngClass]="getNodeIcon(node)"></i>
                 <span class="node-code">{{ node.accountCode }}</span>
                 <span class="node-name">{{ node.accountName }}</span>
-                <span class="node-type">{{ getAccountTypeName(node.accountType) }}</span>
+                <span class="node-type" *ngIf="node.accountType">{{ node.accountType }}</span>
               </div>
               
               <!-- Recursively render children if expanded -->
-              <div *ngIf="node.isExpanded && node.children && node.children.length > 0">
+              <ul *ngIf="node.isExpanded && node.children && node.children.length > 0" class="child-nodes">
                 <ng-container *ngTemplateOutlet="accountsTreeTemplate; context: { $implicit: node.children, level: level + 1 }"></ng-container>
-              </div>
-            </div>
-          </div>
+              </ul>
+            </li>
+          </ul>
         </ng-template>
       </div>
     </div>
@@ -77,7 +80,7 @@
         </div>
         <div class="details-row">
           <span class="label">Type:</span>
-          <span class="value">{{ getAccountTypeName(selectedAccount.accountType) }}</span>
+          <span class="value">{{ selectedAccount.accountType || 'N/A' }}</span>
         </div>
         <div class="details-row">
           <span class="label">Level:</span>
@@ -112,16 +115,9 @@
           <input type="text" id="accountName" [(ngModel)]="newAccount.accountName" required>
         </div>
         
-        <div class="form-group">
-          <!-- <label for="coATypeId">Account Type</label>
-          <select id="coATypeId" [(ngModel)]="newAccount.coATypeId" required>
-            <option *ngFor="let type of accountTypes" [value]="type.id">{{ type.name }}</option>
-          </select> -->
-        </div>
-        
         <div class="form-group" *ngIf="formMode === 'create'">
           <label for="parentAccountCode">Parent Account</label>
-          <input type="text" [value]="newAccount.parentAccountCode ? newAccount.parentAccountCode : 'Root Account'" disabled>
+          <input type="text" [value]="newAccount.parentAccountCode ? findAccountNameByCode(newAccount.parentAccountCode) : 'Root Account'" disabled>
         </div>
         
         <div class="form-actions">
@@ -136,6 +132,9 @@
       <div class="empty-state" *ngIf="!selectedAccount && !showForm">
         <i class="fas fa-info-circle"></i>
         <p>Select an account from the tree to view details</p>
+        <!-- <button class="btn-primary mt-3" (click)="showCreateForm()">
+          <i class="fas fa-plus"></i> Create Root Account
+        </button> -->
       </div>
     </div>
   </div>

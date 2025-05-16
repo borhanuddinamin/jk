@@ -395,7 +395,7 @@
 </c-row> -->
 
 Role Switcher (for demo purposes)
-<div class="mb-4 p-3 bg-light rounded">
+<!-- <div class="mb-4 p-3 bg-light rounded">
   <h5>Role Selector (Demo Only)</h5>
   <div class="btn-group" role="group">
     <button cButton color="primary" [variant]="userRole === 'admin' ? 'ghost' : 'outline'" (click)="switchRole('admin')">Admin</button>
@@ -403,14 +403,14 @@ Role Switcher (for demo purposes)
     <button cButton color="primary" [variant]="userRole === 'supplier' ? 'ghost' : 'outline'" (click)="switchRole('supplier')">Executive Associate</button>
     <button cButton color="primary" [variant]="userRole === 'employee' ? 'ghost' : 'outline'" (click)="switchRole('employee')">Employee</button>
   </div>
-</div>
+</div> -->
 
 <!-- ADMIN DASHBOARD -->
 <div *ngIf="userRole === 'admin'">
   <h1 class="mb-4">Admin Dashboard</h1>
   
   <!-- Admin Stats Cards -->
-  <c-row>
+  <!-- <c-row>
     <c-col sm="6" lg="3">
       <c-card class="mb-4 text-white bg-primary">
         <c-card-body class="pb-0 d-flex justify-content-between align-items-start">
@@ -469,15 +469,15 @@ Role Switcher (for demo purposes)
         </c-card-footer>
       </c-card>
     </c-col>
-  </c-row>
+  </c-row> -->
   <!-- Add this card where you want the Installment Overview to appear -->
-<c-card class="mb-4">
+<!-- <c-card class="mb-4">
   <c-card-header>
     <strong>Installment Overview</strong>
     <small class="ms-1">(Current Month)</small>
   </c-card-header>
   <c-card-body>
-    <!-- First row with counts -->
+    
     <c-row>
       <c-col xs="6" xl="3">
         <div class="border-start border-start-4 border-start-success py-1 px-3 mb-3">
@@ -528,7 +528,6 @@ Role Switcher (for demo purposes)
       </c-col>
     </c-row>
     
-    <!-- Second row with the overall completion rate -->
     <div class="mb-3">
       <div class="d-flex justify-content-between mb-1">
         <div>Installment Completion</div>
@@ -539,7 +538,6 @@ Role Switcher (for demo purposes)
       </c-progress>
     </div>
     
-    <!-- Third row with paid/due installments -->
     <c-row class="mt-3">
       <c-col sm="6" xl="6">
         <div class="border-start border-start-4 border-start-success py-1 px-3 mb-3">
@@ -567,7 +565,6 @@ Role Switcher (for demo purposes)
       </c-col>
     </c-row>
     
-    <!-- Bottom row with total and button -->
     <c-row>
       <c-col sm="12">
         <div class="d-flex justify-content-between align-items-center border-top pt-3">
@@ -582,7 +579,7 @@ Role Switcher (for demo purposes)
       </c-col>
     </c-row>
   </c-card-body>
-</c-card>
+</c-card> -->
   <!-- Product Search -->
   <!-- <c-card class="mb-4">
     <c-card-header>
@@ -649,7 +646,7 @@ Role Switcher (for demo purposes)
   </c-card> -->
   
   <!-- Monthly Sales Chart -->
-  <c-card class="mb-4">
+  <!-- <c-card class="mb-4">
     <c-card-header>
       <strong>Monthly Product Sales</strong>
     </c-card-header>
@@ -690,10 +687,10 @@ Role Switcher (for demo purposes)
         </c-col>
       </c-row>
     </c-card-body>
-  </c-card>
+  </c-card> -->
   
   <!-- Top Selling Products -->
-  <c-card class="mb-4">
+  <!-- <c-card class="mb-4">
     <c-card-header>
       <strong>Top Selling Products by Quantity</strong>
     </c-card-header>
@@ -719,11 +716,11 @@ Role Switcher (for demo purposes)
         </tbody>
       </table>
     </c-card-body>
-  </c-card>
+  </c-card> -->
   
 
   <!-- Add this section to your dashboard.component.html file -->
-<c-card class="mb-4">
+<!-- <c-card class="mb-4">
   <c-card-header>
     <strong>Installment Customers</strong>
   </c-card-header>
@@ -789,7 +786,7 @@ Role Switcher (for demo purposes)
       </table>
     </div>
     
-    <!-- Pagination -->
+    
     <nav aria-label="Installment customers pagination">
       <ul class="pagination">
         <li class="page-item" [ngClass]="{'disabled': currentPage === 1}">
@@ -809,7 +806,7 @@ Role Switcher (for demo purposes)
       </ul>
     </nav>
   </c-card-body>
-</c-card>
+</c-card> -->
 
 
 
@@ -858,10 +855,10 @@ Role Switcher (for demo purposes)
 </div>
 
 <!-- STAFF/ASSOCIATE DASHBOARD -->
-<div *ngIf="userRole === 'staff'">
+<!-- <div *ngIf="userRole === 'staff'">
   <h1 class="mb-4">Staff Dashboard</h1>
   
-  <!-- Staff Stats Cards -->
+  
   <c-row>
     <c-col sm="6" lg="4">
       <c-card class="mb-4 text-white bg-primary">
@@ -980,9 +977,9 @@ Role Switcher (for demo purposes)
         <p>No products found matching your search criteria.</p>
       </div>
     </c-card-body>
-  </c-card> -->
+  </c-card> 
   
-  <!-- Commission Chart -->
+  
   <c-card class="mb-4">
     <c-card-header>
       <strong>Monthly Product Sales</strong>
@@ -999,7 +996,7 @@ Role Switcher (for demo purposes)
     </c-card-body>
   </c-card>
   
-  <!-- Defaulter Installment Persons -->
+  
   <c-card class="mb-4">
     <c-card-header>
       <strong>Defaulter Installment Customers</strong>
@@ -1041,10 +1038,10 @@ Role Switcher (for demo purposes)
       </div>
     </c-card-body>
   </c-card>
-</div>
+</div> -->
 
 <!-- SUPPLIER DASHBOARD -->
-<div *ngIf="userRole === 'supplier'">
+<!-- <div *ngIf="userRole === 'supplier'">
   <h1 class="mb-4">Executive Associate Dashboard</h1>
   
   <!-- Supplier Stats Cards - First Row -->
@@ -1085,10 +1082,10 @@ Role Switcher (for demo purposes)
           <c-progress thin color="white" value="65" aria-label="Commission Products Progress"></c-progress>
         </c-card-footer>
       </c-card>
-    </c-col> -->
+    </c-col> 
   </c-row>
   
-  <!-- Additional Supplier Stats Cards - Second Row -->
+
   <c-row>
     <c-col sm="6" lg="3">
       <c-card class="mb-4 text-white bg-info">
@@ -1170,7 +1167,7 @@ Role Switcher (for demo purposes)
     </c-col>
   </c-row>
   
-  <!-- Add this card after the stat cards in the supplier dashboard section -->
+ 
   <c-card class="mb-4">
     <c-card-header>
       <strong>Installment Overview</strong>
@@ -1228,8 +1225,8 @@ Role Switcher (for demo purposes)
     </c-card-body>
   </c-card>
   
-  <!-- Rest of supplier dashboard content remains unchanged -->
-  <!-- Supplier Products -->
+
+
   <c-card class="mb-4">
     <c-card-header>
       <strong>Your Products</strong>
@@ -1269,7 +1266,7 @@ Role Switcher (for demo purposes)
     </c-card-body>
   </c-card>
   
-  <!-- Monthly Sales Chart for Supplier -->
+
   <c-card class="mb-4">
     <c-card-header>
       <strong>Monthly Product Sales</strong>
@@ -1312,13 +1309,13 @@ Role Switcher (for demo purposes)
       </c-row>
     </c-card-body>
   </c-card>
-</div>
+</div> -->
 
 <!-- EMPLOYEE DASHBOARD -->
-<div *ngIf="userRole === 'employee'">
+<!-- <div *ngIf="userRole === 'employee'">
   <h1 class="mb-4">Sales Associate Dashboard</h1>
   
-  <!-- Employee Stats Cards -->
+
   <c-row>
     <c-col sm="6" lg="3">
       <c-card class="mb-4 text-white bg-primary">
@@ -1422,7 +1419,7 @@ Role Switcher (for demo purposes)
       </div>
     </c-card-header>
     <c-card-body>
-      <!-- Search result summary -->
+     
       <div class="search-result-info mb-3" *ngIf="employeeSearchQuery">
         <span class="text-muted">
           Found {{ filteredInstallmentPersons.length }} results for "{{ employeeSearchQuery }}"
@@ -1440,7 +1437,7 @@ Role Switcher (for demo purposes)
               <th>Doubtful</th>
               <th>Bad</th>
               <th>Installments</th> -->
-              <th>Amount</th>
+              <!-- <th>Amount</th>
               <th>Next Due Date</th>
               <th>Status</th>
               <th>Actions</th>
@@ -1449,7 +1446,7 @@ Role Switcher (for demo purposes)
           <tbody>
             <tr *ngFor="let person of paginatedInstallmentPersons">
               <td>{{ person.name }}</td>
-              <td>VNB{{ person.id }}</td>
+              <td>VNB{{ person.id }}</td> -->
               <!-- <td>৳{{ person.totalAmount | number }}</td>
               <td>৳{{ person.paidAmount | number }}</td>
               <td>৳{{ person.remainingAmount | number }}</td>
@@ -1470,7 +1467,7 @@ Role Switcher (for demo purposes)
                   </div>
                 </div>
               </td> -->
-              <td>
+              <!-- <td>
                 <div>৳{{ person.totalAmount | number }}</div>
                 <small class="text-success">Paid: ৳{{ person.paidAmount | number }}</small>
                 <small class="text-danger d-block">Due: ৳{{ person.remainingAmount | number }}</small>
@@ -1496,18 +1493,18 @@ Role Switcher (for demo purposes)
             </tr>
           </tbody>
         </table>
-      </div>
+      </div> -->
       
       <!-- Empty state message when no results found -->
-      <div *ngIf="filteredInstallmentPersons.length === 0" class="text-center py-4">
+      <!-- <div *ngIf="filteredInstallmentPersons.length === 0" class="text-center py-4">
         <p>No installment customers found matching your search criteria.</p>
         <button cButton color="primary" size="sm" (click)="clearInstallmentSearch()">
           <svg cIcon name="cilReload"></svg> Reset Search
         </button>
-      </div>
+      </div> -->
       
       <!-- Pagination - This remains the same as it's using the updated paginatedInstallmentPersons -->
-      <nav aria-label="Installment customers pagination" *ngIf="filteredInstallmentPersons.length > 0">
+      <!-- <nav aria-label="Installment customers pagination" *ngIf="filteredInstallmentPersons.length > 0">
         <ul class="pagination">
           <li class="page-item" [ngClass]="{'disabled': currentPage === 1}">
             <a class="page-link" (click)="previousPage()" aria-label="Previous">
@@ -1526,7 +1523,7 @@ Role Switcher (for demo purposes)
         </ul>
       </nav>
     </c-card-body>
-  </c-card>
+  </c-card> -->
 
 
   <!-- Product Search -->
@@ -1640,11 +1637,10 @@ Role Switcher (for demo purposes)
         <p>No installment customers found.</p>
       </div>
     </c-card-body>
-  </c-card> -->
-</div>
-
+  </c-card> 
+</div> -->
 <!-- Add Modal at the end of the Employee Dashboard section -->
-<c-modal 
+ <!-- <c-modal 
   [visible]="installmentModalVisible" 
   (visibleChange)="handleModalChange($event)"
   size="lg"
@@ -1767,7 +1763,6 @@ Role Switcher (for demo purposes)
         </tr>
       </thead>
       <tbody>
-        <!-- Sample transaction data (you can replace with actual data if available) -->
         <tr>
           <td>{{ selectedInstallmentPerson.lastPaymentDate | date:'mediumDate' }}</td>
           <td>৳{{ selectedInstallmentPerson.totalAmount / selectedInstallmentPerson.totalInstallments | number }}</td>
@@ -1787,4 +1782,4 @@ Role Switcher (for demo purposes)
     <button cButton color="secondary" (click)="closeInstallmentModal()">Close</button>
     <button cButton color="primary">Process Payment</button>
   </c-modal-footer>
-</c-modal>
+</c-modal>  -->

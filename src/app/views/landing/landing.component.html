@@ -1,63 +1,77 @@
 <!-- Main Container -->
 <div class="landing-page">
   <!-- Navigation -->
-    <nav class="landing-nav">
-      <div class="nav-brand">
+  <nav class="landing-nav">
+    <div class="nav-brand">
       <img src="assets/images/logo.png" alt="Logo" class="brand-logo">
       <h1>JK Associate</h1>
-      </div>
-      
-      <button class="mobile-menu-btn" (click)="toggleMobileMenu()" 
-              [attr.aria-expanded]="isMobileMenuOpen" 
-              aria-label="Toggle navigation menu">
-        <span class="menu-icon" [class.active]="isMobileMenuOpen"></span>
-      </button>
+    </div>
+    
+    <button class="mobile-menu-btn" (click)="toggleMobileMenu()" 
+            [attr.aria-expanded]="isMobileMenuOpen" 
+            aria-label="Toggle navigation menu">
+      <span class="menu-icon" [class.active]="isMobileMenuOpen"></span>
+    </button>
 
     <div class="nav-menu" [class.active]="isMobileMenuOpen">
-      <!-- <a href="#solutions" class="nav-link" (click)="closeMenu()">Solutions</a> -->
-      <a href="#features" class="nav-link" (click)="closeMenu()">Features</a>
-      <a href="#testimonials" class="nav-link" (click)="closeMenu()">Testimonials</a>
-      <!-- <a href="#pricing" class="nav-link" (click)="closeMenu()">Pricing</a> -->
+      <!-- <a href="#categories" class="nav-link" (click)="closeMenu()">Categories</a> -->
+      <a href="#featured" class="nav-link" (click)="closeMenu()">Featured</a>
+      <a href="#sales-team" class="nav-link" (click)="closeMenu()">Our Team</a>
+      <a href="#testimonials" class="nav-link" (click)="closeMenu()">Reviews</a>
       <div class="nav-buttons">
         <a routerLink="/login" class="nav-button login" (click)="closeMenu()">Login</a>
-        <!-- <a routerLink="/register" class="nav-button register" (click)="closeMenu()">Get Started</a> -->
+        <a routerLink="/cart" class="nav-button cart" (click)="closeMenu()">
+          <i class="fas fa-shopping-cart"></i> Cart
+        </a>
       </div>
-      </div>
-    </nav>
-    
-  <!-- Slide Banner -->
+    </div>
+  </nav>
+  
+  <!-- Slide Banner - Modified to focus on organization success -->
   <section class="banner-slider">
     <div class="slides-container">
       <div class="slide" [class.active]="currentSlide === 0">
         <div class="slide-content">
-          <h1>Streamline Your Business Operations</h1>
-          <p>All-in-one sales management solution designed for growing enterprises</p>
-          <a routerLink="/register" class="slide-cta">Start Free Trial</a>
+          <span class="slide-badge">Trusted Since 2005</span>
+          <h1>Bangladesh's Leading Electronics Provider</h1>
+          <p>Serving over 50,000 happy customers with quality products and exceptional service</p>
+          <div class="slide-actions">
+            <a href="#electronics" class="slide-cta primary">Shop Electronics</a>
+            <a href="#success-stories" class="slide-cta secondary">Our Success Story</a>
+          </div>
         </div>
         <div class="slide-image">
-          <img src="assets/images/banner-1.jpg" alt="Business Operations">
+          <img src="assets/images/banner-1.jpg" alt="Smart Home Electronics">
         </div>
       </div>
       
       <div class="slide" [class.active]="currentSlide === 1">
         <div class="slide-content">
-          <h1>Scale Your Business With Confidence</h1>
-          <p>Powerful tools that grow with your enterprise needs</p>
-          <a routerLink="/register" class="slide-cta">Start Free Trial</a>
+          <span class="slide-badge">Award Winning</span>
+          <h1>Excellence in Customer Service</h1>
+          <p>Recognized as the Best Electronics Retailer in Bangladesh for 3 consecutive years</p>
+          <div class="slide-actions">
+            <a href="#kitchen" class="slide-cta primary">Shop Kitchen</a>
+            <a href="#testimonials" class="slide-cta secondary">Customer Reviews</a>
+          </div>
         </div>
         <div class="slide-image">
-          <img src="assets/images/banner-2.jpg" alt="Business Scaling">
+          <img src="assets/images/banner-3.jpg" alt="Kitchen Appliances">
         </div>
       </div>
       
       <div class="slide" [class.active]="currentSlide === 2">
         <div class="slide-content">
-          <h1>Insights That Drive Growth</h1>
-          <p>Data-driven decisions for your enterprise success</p>
-          <a routerLink="/register" class="slide-cta">Start Free Trial</a>
+          <span class="slide-badge">Nationwide Presence</span>
+          <h1>20+ Showrooms Across Bangladesh</h1>
+          <p>Find us in every major city with trained staff ready to assist you with your purchase</p>
+          <div class="slide-actions">
+            <a href="#sales-team" class="slide-cta primary">Meet Our Team</a>
+            <a href="#locations" class="slide-cta secondary">Find Locations</a>
+          </div>
         </div>
         <div class="slide-image">
-          <img src="assets/images/banner-3.jpg" alt="Business Insights">
+          <img src="assets/images/banner-2.jpg" alt="Our Showrooms">
         </div>
       </div>
     </div>
@@ -77,302 +91,314 @@
     </div>
   </section>
 
-  <!-- Enterprise Solutions Section -->
-  <!-- <section class="solutions" id="solutions">
+  <!-- Success Stories Section - Redesigned with image slider -->
+  <section class="success-stories" id="success-stories">
     <div class="section-header">
-      <h2>Enterprise Solutions</h2>
-      <p>Tailored for businesses of all sizes</p>
+      <h2>Our Impact Stories</h2>
+      <p>How our community initiatives are changing lives across Bangladesh</p>
     </div>
     
-    <div class="solutions-grid">
-      <div class="solution-card">
-        <div class="solution-icon">
-          <i class="fas fa-store"></i>
+    <div class="story-slider">
+      <div class="story-slides" [style.transform]="'translateX(' + (-currentStorySlide * 100) + '%)'">
+        <!-- <div class="story-slide">
+          <div class="story-image">
+            <img src="assets/images/story-1.jpg" alt="Community Workshop">
+          </div>
+          <div class="story-content">
+            <div class="story-year">2018</div>
+            <h3>Community Empowerment</h3>
+            <p>Our first community workshop trained 50 local youth in basic electronics repair, creating sustainable income opportunities in rural areas.</p>
+            <div class="story-quote">
+              "The skills I learned changed my life. Now I can support my family by repairing electronics in my village." - Karim, Workshop Graduate
+            </div>
+            <div class="story-impact">
+              <div class="impact-item">
+                <div class="impact-value">50+</div>
+                <div class="impact-label">Trained Youth</div>
+              </div>
+              <div class="impact-item">
+                <div class="impact-value">12</div>
+                <div class="impact-label">Villages Reached</div>
+              </div>
+            </div>
+          </div>
+        </div> -->
+        
+        <div class="story-slide">
+          <div class="story-image">
+            <img src="assets/images/story-2.jpg" alt="Women's Cooperative">
+          </div>
+          <div class="story-content">
+            <div class="story-year">2020</div>
+            <h3>Women's Cooperative</h3>
+            <p>We established a women's cooperative that produces handcrafted home decor items, providing income for 30 women from underprivileged backgrounds.</p>
+            <div class="story-quote">
+              "Being part of this cooperative has given me financial independence and confidence. My children can now go to school." - Fatima, Cooperative Member
+            </div>
+            <div class="story-impact">
+              <div class="impact-item">
+                <div class="impact-value">30</div>
+                <div class="impact-label">Women Employed</div>
+              </div>
+              <div class="impact-item">
+                <div class="impact-value">120</div>
+                <div class="impact-label">Lives Improved</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <h3>Small Business</h3>
-        <p>Affordable solutions to streamline operations and boost growth</p>
-        <ul class="solution-features">
-          <li><i class="fas fa-check"></i> Easy setup and onboarding</li>
-          <li><i class="fas fa-check"></i> Essential sales tracking</li>
-          <li><i class="fas fa-check"></i> Basic reporting</li>
-        </ul>
-        <a href="#pricing" class="solution-link">Learn More</a>
-      </div>
-
-      <div class="solution-card featured">
-        <div class="solution-badge">Most Popular</div>
-        <div class="solution-icon">
-          <i class="fas fa-building"></i>
+        
+        <div class="story-slide">
+          <div class="story-image">
+            <img src="assets/images/story-3.jpg" alt="Solar Initiative">
+          </div>
+          <div class="story-content">
+            <div class="story-year">2022</div>
+            <h3>Rural Electrification</h3>
+            <p>Our solar initiative has brought electricity to 15 remote villages, powering homes, schools, and small businesses with clean, renewable energy.</p>
+            <div class="story-quote">
+              "For the first time, our children can study after sunset. Our community health center can now store vaccines properly." - Village Elder
+            </div>
+            <div class="story-impact">
+              <div class="impact-item">
+                <div class="impact-value">15</div>
+                <div class="impact-label">Villages Powered</div>
+              </div>
+              <div class="impact-item">
+                <div class="impact-value">3,500+</div>
+                <div class="impact-label">People Benefited</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <h3>Medium Enterprise</h3>
-        <p>Comprehensive tools to scale your business operations</p>
-        <ul class="solution-features">
-          <li><i class="fas fa-check"></i> Advanced analytics</li>
-          <li><i class="fas fa-check"></i> Multi-user access</li>
-          <li><i class="fas fa-check"></i> Integration capabilities</li>
-        </ul>
-        <a href="#pricing" class="solution-link">Learn More</a>
       </div>
-
-      <div class="solution-card">
-        <div class="solution-icon">
-          <i class="fas fa-city"></i>
-        </div>
-        <h3>Large Enterprise</h3>
-        <p>Custom solutions for complex business requirements</p>
-        <ul class="solution-features">
-          <li><i class="fas fa-check"></i> Custom workflows</li>
-          <li><i class="fas fa-check"></i> Enterprise API access</li>
-          <li><i class="fas fa-check"></i> Dedicated support</li>
-        </ul>
-        <a href="#pricing" class="solution-link">Learn More</a>
+      
+      <button class="story-arrow prev" (click)="prevStorySlide()" aria-label="Previous story">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <button class="story-arrow next" (click)="nextStorySlide()" aria-label="Next story">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+      
+      <div class="story-controls">
+        <button class="story-dot" [class.active]="currentStorySlide === 0" (click)="goToStorySlide(0)" aria-label="Go to story 1"></button>
+        <button class="story-dot" [class.active]="currentStorySlide === 1" (click)="goToStorySlide(1)" aria-label="Go to story 2"></button>
+        <button class="story-dot" [class.active]="currentStorySlide === 2" (click)="goToStorySlide(2)" aria-label="Go to story 3"></button>
       </div>
-    </div>
-  </section> -->
-
-  <!-- Features Section -->
-  <section class="features" id="features">
-    <div class="section-header">
-      <h2>Enterprise-Grade Features</h2>
-      <p>Powerful tools designed for business growth</p>
     </div>
     
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-chart-line"></i>
-        </div>
-        <h3>Advanced Analytics</h3>
-        <p>Gain insights with customizable dashboards and reports</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">
+    <div class="community-impact">
+      <div class="impact-card">
+        <div class="impact-icon">
           <i class="fas fa-users"></i>
         </div>
-        <h3>Customer Management</h3>
-        <p>Build stronger relationships with integrated CRM tools</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-box"></i>
-        </div>
-        <h3>Inventory Control</h3>
-        <p>Streamline stock management with real-time tracking</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-mobile-alt"></i>
-        </div>
-        <h3>Mobile Access</h3>
-        <p>Manage your business from anywhere, on any device</p>
+        <div class="impact-value">5,000+</div>
+        <div class="impact-label">Lives Improved</div>
       </div>
       
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-lock"></i>
+      <div class="impact-card">
+        <div class="impact-icon">
+          <i class="fas fa-home"></i>
         </div>
-        <h3>Enterprise Security</h3>
-        <p>Keep your business data safe with advanced security features</p>
+        <div class="impact-value">25</div>
+        <div class="impact-label">Communities Served</div>
       </div>
       
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-plug"></i>
+      <div class="impact-card">
+        <div class="impact-icon">
+          <i class="fas fa-lightbulb"></i>
         </div>
-        <h3>API Integration</h3>
-        <p>Connect with your existing business tools seamlessly</p>
+        <div class="impact-value">15</div>
+        <div class="impact-label">Initiatives Launched</div>
+      </div>
+      
+      <div class="impact-card">
+        <div class="impact-icon">
+          <i class="fas fa-hands-helping"></i>
+        </div>
+        <div class="impact-value">200+</div>
+        <div class="impact-label">Volunteers</div>
       </div>
     </div>
   </section>
 
-  <!-- Testimonials Section -->
-  <section class="testimonials" id="testimonials">
+  <!-- Sales Team Section - Redesigned for community focus -->
+  <section class="sales-team" id="sales-team">
     <div class="section-header">
-      <h2>Trusted by Businesses</h2>
-      <p>See what our customers have to say</p>
+      <h2>Our Community Champions</h2>
+      <p>Meet the dedicated individuals who are driving positive change in communities</p>
     </div>
     
-    <div class="testimonials-grid">
-      <div class="testimonial-card">
-        <div class="testimonial-content">
-          <i class="fas fa-quote-left"></i>
-          <p>"SalesPro has transformed how we manage our sales process. The analytics tools have helped us identify new opportunities and grow our business by 30% in just six months."</p>
+    <div class="team-grid">
+      <div class="team-member">
+        <div class="member-image">
+          <img src="assets/images/team-1.jpg" alt="Rahul Ahmed">
         </div>
-        <div class="testimonial-author">
-          <img src="assets/images/testimonial-1.jpg" alt="Sarah Johnson">
-          <div class="author-info">
-            <h4>Sarah Johnson</h4>
-            <p>CEO, TechGrowth Solutions</p>
+        <div class="member-info">
+          <h3>Rahul Ahmed</h3>
+          <p class="member-position">Community Coordinator</p>
+          <p class="member-experience">10+ years in community development</p>
+          <p class="member-specialty">Rural Electrification Expert</p>
+          <div class="member-contact">
+            <a href="tel:+8801712345678"><i class="fas fa-phone-alt"></i></a>
+            <a href="mailto:rahul&#64;jkassociate.org"><i class="fas fa-envelope"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
           </div>
         </div>
       </div>
       
-      <div class="testimonial-card">
-        <div class="testimonial-content">
-          <i class="fas fa-quote-left"></i>
-          <p>"As a medium-sized manufacturing company, we needed a solution that could scale with us. SalesPro provided exactly what we needed, with excellent support along the way."</p>
+      <div class="team-member">
+        <div class="member-image">
+          <img src="assets/images/team-2.jpg" alt="Nusrat Jahan">
         </div>
-        <div class="testimonial-author">
-          <img src="assets/images/testimonial-2.jpg" alt="Michael Chen">
-          <div class="author-info">
-            <h4>Michael Chen</h4>
-            <p>Operations Director, Precision Manufacturing</p>
+        <div class="member-info">
+          <h3>Nusrat Jahan</h3>
+          <p class="member-position">Women's Empowerment Lead</p>
+          <p class="member-experience">8+ years in social work</p>
+          <p class="member-specialty">Skills Development Trainer</p>
+          <div class="member-contact">
+            <a href="tel:+8801723456789"><i class="fas fa-phone-alt"></i></a>
+            <a href="mailto:nusrat&#64;jkassociate.org"><i class="fas fa-envelope"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
           </div>
         </div>
       </div>
       
-      <div class="testimonial-card">
-        <div class="testimonial-content">
-          <i class="fas fa-quote-left"></i>
-          <p>"The inventory management features have eliminated stockouts and reduced our carrying costs. SalesPro paid for itself within the first quarter of implementation."</p>
+      <div class="team-member">
+        <div class="member-image">
+          <img src="assets/images/team-3.jpg" alt="Kamal Hossain">
         </div>
-        <div class="testimonial-author">
-          <img src="assets/images/testimonial-3.jpg" alt="Amanda Rodriguez">
-          <div class="author-info">
-            <h4>Amanda Rodriguez</h4>
-            <p>Supply Chain Manager, Global Retail</p>
+        <div class="member-info">
+          <h3>Kamal Hossain</h3>
+          <p class="member-position">Youth Program Director</p>
+          <p class="member-experience">5+ years in education</p>
+          <p class="member-specialty">Technical Skills Trainer</p>
+          <div class="member-contact">
+            <a href="tel:+8801734567890"><i class="fas fa-phone-alt"></i></a>
+            <a href="mailto:kamal&#64;jkassociate.org"><i class="fas fa-envelope"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
           </div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- Pricing Section -->
-  <!-- <section class="pricing" id="pricing">
-    <div class="section-header">
-      <h2>Flexible Pricing</h2>
-      <p>Choose the plan that fits your business needs</p>
+      
+      <div class="team-member">
+        <div class="member-image">
+          <img src="assets/images/team-4.jpg" alt="Sadia Rahman">
+        </div>
+        <div class="member-info">
+          <h3>Sadia Rahman</h3>
+          <p class="member-position">Community Relations</p>
+          <p class="member-experience">6+ years in community outreach</p>
+          <p class="member-specialty">Partnership Development</p>
+          <div class="member-contact">
+            <a href="tel:+8801745678901"><i class="fas fa-phone-alt"></i></a>
+            <a href="mailto:sadia&#64;jkassociate.org"><i class="fas fa-envelope"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+          </div>
+        </div>
+      </div>
     </div>
     
-    <div class="pricing-grid">
-      <div class="pricing-card">
-        <div class="pricing-header">
-          <h3>Starter</h3>
-          <div class="price">
-            <span class="currency">$</span>
-            <span class="amount">29</span>
-            <span class="period">/month</span>
-          </div>
-          <p>Perfect for small businesses</p>
-        </div>
-        <ul class="pricing-features">
-          <li><i class="fas fa-check"></i> Up to 5 users</li>
-          <li><i class="fas fa-check"></i> Basic reporting</li>
-          <li><i class="fas fa-check"></i> Customer management</li>
-          <li><i class="fas fa-check"></i> Email support</li>
-        </ul>
-        <a routerLink="/register" class="pricing-cta">Get Started</a>
-      </div>
-      
-      <div class="pricing-card popular">
-        <div class="popular-badge">Most Popular</div>
-        <div class="pricing-header">
-          <h3>Business</h3>
-          <div class="price">
-            <span class="currency">$</span>
-            <span class="amount">79</span>
-            <span class="period">/month</span>
-          </div>
-          <p>Ideal for growing enterprises</p>
-        </div>
-        <ul class="pricing-features">
-          <li><i class="fas fa-check"></i> Up to 20 users</li>
-          <li><i class="fas fa-check"></i> Advanced analytics</li>
-          <li><i class="fas fa-check"></i> API access</li>
-          <li><i class="fas fa-check"></i> Priority support</li>
-        </ul>
-        <a routerLink="/register" class="pricing-cta">Get Started</a>
-      </div>
-      
-      <div class="pricing-card">
-        <div class="pricing-header">
-          <h3>Enterprise</h3>
-          <div class="price">
-            <span class="custom-price">Custom</span>
-          </div>
-          <p>For large organizations</p>
-        </div>
-        <ul class="pricing-features">
-          <li><i class="fas fa-check"></i> Unlimited users</li>
-          <li><i class="fas fa-check"></i> Custom reporting</li>
-          <li><i class="fas fa-check"></i> Dedicated account manager</li>
-          <li><i class="fas fa-check"></i> 24/7 premium support</li>
-        </ul>
-        <a routerLink="/contact" class="pricing-cta outline">Contact Sales</a>
-      </div>
+    <div class="team-cta">
+      <p>Want to join our mission or partner with us? Our team is ready to connect!</p>
+      <a href="tel:+8801800000000" class="team-contact-btn"><i class="fas fa-phone-alt"></i> Contact Our Team</a>
     </div>
-  </section> -->
+  </section>
 
-  <!-- CTA Section -->
-  <section class="cta-section">
-    <div class="cta-content">
-      <h2>Ready to Transform Your Business?</h2>
-      <p>Join thousands of SMEs already using our platform to grow their business</p>
-      <div class="cta-buttons">
-        <a routerLink="/register" class="cta-button primary">Start Free Trial</a>
-        <a routerLink="/demo" class="cta-button outline">Request Demo</a>
+  <!-- Join Our Community Section - New section -->
+  <section class="join-community">
+    <div class="join-content">
+      <h2>Join Our Community Movement</h2>
+      <p>Together, we can create sustainable change and empower communities across Bangladesh</p>
+      <div class="join-options">
+        <div class="join-option">
+          <div class="option-icon">
+            <i class="fas fa-hand-holding-heart"></i>
+          </div>
+          <h3>Volunteer</h3>
+          <p>Share your skills and time to support our community initiatives</p>
+          <a href="#" class="option-link">Learn More</a>
+        </div>
+        
+        <div class="join-option">
+          <div class="option-icon">
+            <i class="fas fa-shopping-bag"></i>
+          </div>
+          <h3>Shop With Purpose</h3>
+          <p>Every purchase supports our community development programs</p>
+          <a href="#" class="option-link">Browse Products</a>
+        </div>
+        
+        <div class="join-option">
+          <div class="option-icon">
+            <i class="fas fa-hands-helping"></i>
+          </div>
+          <h3>Partner With Us</h3>
+          <p>Collaborate with us to expand our impact in communities</p>
+          <a href="#" class="option-link">Contact Us</a>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Footer -->
+  <!-- Footer - Updated for NGO focus -->
   <footer class="landing-footer">
     <div class="footer-content">
       <!-- Brand Section -->
       <div class="footer-brand">
-        <h3>SalesPro</h3>
-        <p>Empowering businesses with innovative solutions for growth and success.</p>
-        <div class="newsletter-form">
-          <input type="email" placeholder="Enter your email">
-          <button>Subscribe</button>
+        <h3>JK Associate</h3>
+        <p>Empowering communities through sustainable development and quality products.</p>
+        <div class="social-icons">
+          <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
         </div>
       </div>
 
       <!-- Quick Links -->
       <div class="footer-section">
-        <h4>Quick Links</h4>
+        <h4>Shop</h4>
         <ul>
-          <li><a href="#"><i class="fas fa-chevron-right"></i>About Us</a></li>
-          <li><a href="#"><i class="fas fa-chevron-right"></i>Features</a></li>
-          <li><a href="#"><i class="fas fa-chevron-right"></i>Pricing</a></li>
-          <li><a href="#"><i class="fas fa-chevron-right"></i>Contact</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Electronics</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Furniture</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Kitchen Appliances</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Home Decor</a></li>
         </ul>
       </div>
 
-      <!-- Resources -->
+      <!-- Customer Service -->
       <div class="footer-section">
-        <h4>Resources</h4>
+        <h4>Customer Service</h4>
         <ul>
-          <li><a href="#"><i class="fas fa-chevron-right"></i>Documentation</a></li>
-          <li><a href="#"><i class="fas fa-chevron-right"></i>Help Center</a></li>
-          <li><a href="#"><i class="fas fa-chevron-right"></i>Blog</a></li>
-          <li><a href="#"><i class="fas fa-chevron-right"></i>Webinars</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Contact Us</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>FAQs</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Shipping & Returns</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i>Warranty Information</a></li>
         </ul>
       </div>
 
-      <!-- Legal -->
+      <!-- Contact Info -->
       <div class="footer-section">
-        <h4>Legal</h4>
-        <ul>
-          <li><a href="#"><i class="fas fa-chevron-right"></i>Privacy Policy</a></li>
-          <li><a href="#"><i class="fas fa-chevron-right"></i>Terms of Service</a></li>
-          <li><a href="#"><i class="fas fa-chevron-right"></i>Security</a></li>
-          <li><a href="#"><i class="fas fa-chevron-right"></i>Cookies Policy</a></li>
+        <h4>Contact Us</h4>
+        <ul class="contact-info">
+          <li><i class="fas fa-map-marker-alt"></i>123 Main Street, Dhaka, Bangladesh</li>
+          <li><i class="fas fa-phone-alt"></i>+880 1234 567890</li>
+          <li><i class="fas fa-envelope"></i>info&#64;jkelectronics.com</li>
+          <li><i class="fas fa-clock"></i>Mon-Sat: 9:00 AM - 8:00 PM</li>
         </ul>
       </div>
     </div>
 
     <!-- Footer Bottom -->
     <div class="footer-bottom">
-      <p>&copy; 2024 SalesPro. All rights reserved.</p>
-      <div class="footer-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Cookies</a>
+      <p>&copy; 2025 JK Associate. All rights reserved.</p>
+      <div class="payment-methods">
+        <img src="assets/images/payment-visa.png" alt="Visa">
+        <img src="assets/images/payment-mastercard.png" alt="Mastercard">
+        <img src="assets/images/payment-bkash.png" alt="bKash">
+        <img src="assets/images/payment-nagad.png" alt="Nagad">
       </div>
     </div>
   </footer>
-  </div>
+</div>

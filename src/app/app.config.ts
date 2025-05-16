@@ -1,5 +1,6 @@
 import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { AgGridModule } from 'ag-grid-angular';
 import {
   provideRouter,
   withEnabledBlockingInitialNavigation,
@@ -14,7 +15,6 @@ import { routes } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { AuthInterceptor } from './services/auth.interceptor';
 import { ToastrModule } from 'ngx-toastr';
-
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withInterceptors([AuthInterceptor])),
@@ -34,6 +34,7 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(
       SidebarModule, 
       DropdownModule,
+      AgGridModule,
       ToastrModule.forRoot({
         timeOut: 5000,
         positionClass: 'toast-top-right',

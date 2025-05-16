@@ -5,12 +5,13 @@ import { HttpClient, HttpClientModule, HttpHeaders, HttpParams } from '@angular/
 import { environment } from '../../../environments/environment';
 import { ToastrService } from 'ngx-toastr';
 
+// Update the AccountNode interface to match the actual API response
 interface AccountNode {
   accountCode: string;
   accountName: string;
   level: number;
-  accountType: string;
-  children: AccountNode[];
+  accountType?: string; // Make this optional since it's not in the API response
+  children?: AccountNode[]; // Make this optional since it's not in the API response
   isExpanded?: boolean;
   parentAccountCode?: string;
 }
@@ -64,13 +65,18 @@ export class ChartOfAccountsComponent implements OnInit {
       params = params.set('search', this.searchTerm);
     }
     
-    this.http.get<AccountNode[]>(`${environment.apiUrl}/ChartedOfAccount/GetChofAccounts`, { 
+    this.http.get<any>(`${environment.apiUrl}/ChartedOfAccount/GetChofAccountsList`, { 
       headers: this.getAuthHeaders(),
       params: params
     })
     .subscribe({
-      next: (data) => {
-        this.accounts = data;
+      next: (response) => {
+        // Transform the flat list into a hierarchical structure
+        if (response && Array.isArray(response.data)) {
+          this.accounts = this.buildAccountTree(response.data);
+        } else {
+          this.accounts = this.buildAccountTree(response);
+        }
         this.isLoading = false;
       },
       error: (error) => {
@@ -79,6 +85,58 @@ export class ChartOfAccountsComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  // Add this method to transform flat data into a tree structure
+  buildAccountTree(accounts: any[]): AccountNode[] {
+    // First, initialize all nodes with empty children arrays
+    const accountsMap: { [key: string]: AccountNode } = {};
+    
+    accounts.forEach(account => {
+      accountsMap[account.accountCode] = {
+        ...account,
+        children: [],
+        isExpanded: false,
+        // If accountType is missing, derive it from the account code
+        accountType: account.accountType || this.deriveAccountTypeFromCode(account.accountCode)
+      };
+    });
+    
+    // Create the tree structure
+    const rootAccounts: AccountNode[] = [];
+    
+    accounts.forEach(account => {
+      const node = accountsMap[account.accountCode];
+      
+      // If it's a root account (level 1) or has no parent, add to root array
+      if (account.level === 1 || !account.parentAccountCode || account.parentAccountCode === '0') {
+        rootAccounts.push(node);
+      } else {
+        // Otherwise, add as a child to its parent
+        const parent = accountsMap[account.parentAccountCode];
+        if (parent) {
+          parent.children?.push(node);
+        } else {
+          // If parent not found, add to root
+          rootAccounts.push(node);
+        }
+      }
+    });
+    
+    return rootAccounts;
+  }
+
+  // Helper method to derive account type from account code
+  deriveAccountTypeFromCode(code: string): string {
+    const firstDigit = code.charAt(0);
+    switch (firstDigit) {
+      case '1': return 'Asset';
+      case '2': return 'Liability';
+      case '3': return 'Equity';
+      case '4': return 'Revenue';
+      case '5': return 'Expense';
+      default: return 'Unknown';
+    }
   }
 
   getAuthHeaders(): HttpHeaders {
@@ -218,18 +276,47 @@ export class ChartOfAccountsComponent implements OnInit {
     });
   }
 
+  // Add this method to your component class
+  findAccountNameByCode(code: string): string {
+    const account = this.findAccountByCode(code);
+    return account ? account.accountName : code;
+  }
+  
+  // Add this method to get the appropriate icon for each node type
+  getNodeIcon(node: AccountNode): string {
+    if (!node.accountType) return 'fa-folder';
+    
+    switch (node.accountType.toLowerCase()) {
+      case 'asset':
+        return 'fa-building';
+      case 'liability':
+        return 'fa-hand-holding-usd';
+      case 'equity':
+        return 'fa-balance-scale';
+      case 'revenue':
+        return 'fa-chart-line';
+      case 'expense':
+        return 'fa-shopping-cart';
+      default:
+        return 'fa-folder';
+    }
+  }
+  
+  // Add this method to handle form submission
+  submitForm(): void {
+    if (this.formMode === 'create') {
+      this.createAccount();
+    } else {
+      this.updateAccount();
+    }
+  }
+  
+  // Add this method to update an account
   updateAccount(): void {
-    if (!this.selectedAccount) return;
-    
-    const updateData = {
-      accountName: this.newAccount.accountName,
-      // coATypeId: this.newAccount.coATypeId
-    };
-    
-    this.http.put(`${environment.apiUrl}/ChartedOfAccount/UpdateChartOfAccount/${this.selectedAccount.accountCode}`, 
-      updateData, 
-      { headers: this.getAuthHeaders() }
-    )
+    // Implement update logic here
+    this.http.put(`${environment.apiUrl}/ChartedOfAccount/UpdateChartOfAccount`, this.newAccount, { 
+      headers: this.getAuthHeaders() 
+    })
     .subscribe({
       next: () => {
         this.toastr.success('Account updated successfully', 'Success');
@@ -242,14 +329,15 @@ export class ChartOfAccountsComponent implements OnInit {
       }
     });
   }
-
+  
+  // Add this method to delete an account
   deleteAccount(): void {
     if (!this.selectedAccount) return;
     
-    if (confirm(`Are you sure you want to delete ${this.selectedAccount.accountName}?`)) {
-      this.http.delete(`${environment.apiUrl}/ChartedOfAccount/DeleteChartOfAccount/${this.selectedAccount.accountCode}`, 
-        { headers: this.getAuthHeaders() }
-      )
+    if (confirm(`Are you sure you want to delete account "${this.selectedAccount.accountName}"?`)) {
+      this.http.delete(`${environment.apiUrl}/ChartedOfAccount/DeleteChartOfAccount/${this.selectedAccount.accountCode}`, { 
+        headers: this.getAuthHeaders() 
+      })
       .subscribe({
         next: () => {
           this.toastr.success('Account deleted successfully', 'Success');
@@ -263,15 +351,8 @@ export class ChartOfAccountsComponent implements OnInit {
       });
     }
   }
-
-  submitForm(): void {
-    if (this.formMode === 'create') {
-      this.createAccount();
-    } else {
-      this.updateAccount();
-    }
-  }
-
+  
+  // Add this method to search accounts
   searchAccounts(): void {
     this.loadAccounts();
   }
@@ -281,15 +362,20 @@ export class ChartOfAccountsComponent implements OnInit {
     return `${level * 20}px`;
   }
 
-  getNodeIcon(node: AccountNode): string {
-    if (!node.children || node.children.length === 0) {
-      return 'fa-file-alt';
-    }
-    return node.isExpanded ? 'fa-folder-open' : 'fa-folder';
-  }
+  // getNodeIcon(node: AccountNode): string {
+  //   if (!node.children || node.children.length === 0) {
+  //     return 'fa-file-alt';
+  //   }
+  //   return node.isExpanded ? 'fa-folder-open' : 'fa-folder';
+  // }
   
   // Add this method to your component class
+  // Update the getAccountTypeName method to handle missing accountType
   getAccountTypeName(accountType: any): string {
+    if (!accountType) {
+      return 'Unknown';
+    }
+    
     if (typeof accountType === 'object' && accountType !== null) {
       // If accountType is an object, try to extract the name property
       return accountType.name || accountType.typeName || JSON.stringify(accountType);

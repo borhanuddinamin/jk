@@ -9,8 +9,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import {  of } from 'rxjs';
-import { debounceTime, startWith, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { debounceTime, startWith, catchError, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
@@ -28,7 +28,7 @@ const APIs = {
     DeleteCategory: '/Product/DeleteCategory'
   },
   Associate: {
-    GetExeAssociate: '/Associate/GetExeAssociate'
+    GetExeAssociate: '/Associate/GetAssociate'
   }
 };
 
@@ -184,8 +184,12 @@ export class AddProductComponent implements OnInit, AfterViewInit, OnDestroy {
     this.initializeForm();
   }
   
+  // Add this property for tracking search state
+  isSearchingExecutive = false;
+  
   ngOnInit() {
-    this.setupAutocomplete();
+    // this.onExecutiveAssociateSearchChange(); // Add this line
+    // this.setupAutocomplete();
     this.loadInitialData();
   }
   
@@ -892,4 +896,37 @@ export class AddProductComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     this.executiveAssociateSearch = supplier.name;
   }
+
+  onExecutiveAssociateSearchChange() {
+  this.executiveAssociateControl.valueChanges.pipe(
+    debounceTime(300),
+    distinctUntilChanged(),
+    tap(() => {
+      this.isSearchingExecutive = true;
+    }),
+    switchMap(value => {
+      if (typeof value === 'string' && value.trim()) {
+        // Use the existing API endpoint for searching executive associates
+        const headers = this.getAuthHeaders();
+        const url = `${environment.apiUrl}${APIs.Associate.GetExeAssociate}?str=${value.trim()}&associate=1`;
+        
+        return this.http.get<ExecutiveAssociate[]>(url, { headers }).pipe(
+          catchError(error => {
+            console.error('Error searching executive associates', error);
+            this.toastr.error('Failed to search executive associates', 'Error');
+            return of([]);
+          }),
+          tap(() => {
+            this.isSearchingExecutive = false;
+          })
+        );
+      } else {
+        this.isSearchingExecutive = false;
+        return of([]);
+      }
+    })
+  ).subscribe(suppliers => {
+    this.filteredSuppliers = suppliers;
+  });
+}
 }

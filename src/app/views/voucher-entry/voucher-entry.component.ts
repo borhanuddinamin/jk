@@ -8,7 +8,7 @@ import { environment } from '../../../environments/environment';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { debounceTime, distinctUntilChanged, switchMap, tap, catchError } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, switchMap, tap, catchError, map } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -117,29 +117,7 @@ export class VoucherEntryComponent implements OnInit {
   ngOnInit(): void {
     this.loadVouchers();
     
-    // Setup autocomplete for account search
-    this.debitAccountControl.valueChanges.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      tap(() => {
-        this.isSearchingAccount = true;
-      }),
-      switchMap(value => {
-        if (typeof value === 'string' && value.trim()) {
-          return this.searchAccounts(value).pipe(
-            catchError(() => {
-              this.toastr.error('Failed to search accounts', 'Error');
-              return of([]);
-            })
-          );
-        } else {
-          return of([]);
-        }
-      })
-    ).subscribe(accounts => {
-      this.filteredDebitAccounts = accounts;
-      this.isSearchingAccount = false;
-    });
+
   }
   
   onVoucherTypeChange(event: Event): void {
@@ -172,6 +150,32 @@ export class VoucherEntryComponent implements OnInit {
     const value = (event.target as HTMLInputElement).value;
     if (typeof value === 'string') {
       // The valueChanges observable will handle the search
+
+          // Setup autocomplete for account search
+    this.debitAccountControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      tap(() => {
+        this.isSearchingAccount = true;
+      }),
+      switchMap(value => {
+        if (typeof value === 'string' && value.trim()) {
+          return this.searchAccounts(value).pipe(
+            catchError(() => {
+              this.toastr.error('Failed to search accounts', 'Error');
+              return of([]);
+            })
+          );
+        } else {
+          return of([]);
+        }
+      })
+    ).subscribe(accounts => {
+      this.filteredDebitAccounts = accounts;
+      this.isSearchingAccount = false;
+    });
+
+    
     }
   }
   
@@ -180,37 +184,56 @@ export class VoucherEntryComponent implements OnInit {
     const typeId = parseInt(this.voucherForm.get('headType')?.value);
     
     if (!typeId) {
+              this.toastr.warning('Please select account head type', 'Error');
       return of([]);
     }
     
     // First try to search by account code
     if (/^\d+$/.test(searchTerm)) {
-      return this.http.get<any>(`${environment.apiUrl}/ChartedOfAccount/GetChofAccounts?search=${searchTerm}&headType=${typeId}`, {
+      return this.http.get<AccountSearchResponse>(`${environment.apiUrl}/ChartedOfAccount/GetChofAccounts?search=${searchTerm}&headType=${typeId}`, {
         headers: this.getAuthHeaders()
       }).pipe(
-        switchMap(account => {
-          if (account) {
-            // Create an AccountNode from the API response
-            const accountNode: AccountNode = {
+        switchMap(response => {
+          if (response && response.data && response.data.length > 0) {
+            // Map the API response data array to AccountNode array
+            const accountNodes: AccountNode[] = response.data.map(account => ({
               accountCode: account.accountCode,
               accountName: account.accountName,
               level: account.level,
-              accountType: account.accountType.name
-            };
-            return of([accountNode]);
+              accountType: typeId.toString() // Using the selected type ID
+            }));
+            return of(accountNodes);
           } else {
-            // If not found by exact code, fall back to filtering existing accounts
-            return of(this.filterAccountsBySearchTerm(searchTerm, typeId.toString()));
+            // If no data found, return empty array
+            return of([]);
           }
         }),
         catchError(() => {
-          // If API call fails, fall back to filtering existing accounts
-          return of(this.filterAccountsBySearchTerm(searchTerm, typeId.toString()));
+          this.toastr.error('Failed to search accounts', 'Error');
+          return of([]);
         })
       );
     } else {
-      // For non-numeric search terms, filter existing accounts
-      return of(this.filterAccountsBySearchTerm(searchTerm, typeId.toString()));
+      // For non-numeric search terms, use the same API call
+      return this.http.get<AccountSearchResponse>(`${environment.apiUrl}/ChartedOfAccount/GetChofAccounts?search=${searchTerm}&headType=${typeId}`, {
+        headers: this.getAuthHeaders()
+      }).pipe(
+        map(response => {
+          if (response && response.data && response.data.length > 0) {
+            return response.data.map(account => ({
+              accountCode: account.accountCode,
+              accountName: account.accountName,
+              level: account.level,
+              accountType: typeId.toString()
+            }));
+          }
+          return [];
+        }),
+        catchError(() => {
+          this.toastr.error('Failed to search accounts', 'Error');
+          return of([]);
+        })
+      );
     }
   }
   
